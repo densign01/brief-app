@@ -15,6 +15,31 @@ QuickCapture is a web application that allows users to save and summarize articl
 
 **Frontend**: [https://quickcapture-frontend-pdpe4ufhu-densign01s-projects.vercel.app](https://quickcapture-frontend-pdpe4ufhu-densign01s-projects.vercel.app)
 
+## 🧩 Browser Extension
+
+QuickCapture is also available as a browser extension! The extension provides the same functionality in a convenient popup that works on any webpage.
+
+### 📥 Install Browser Extension
+
+**Chrome/Edge (Sideload)**:
+1. Download or clone this repository
+2. Run `./build-extension.sh` to build the extension
+3. Open `chrome://extensions/` in Chrome or `edge://extensions/` in Edge
+4. Enable "Developer mode" 
+5. Click "Load unpacked" and select the `dist-extension` folder
+
+**Safari**:
+1. Use Xcode to create a Safari Extension App project
+2. Copy files from `dist-extension/` to the extension bundle
+3. Build and install via Xcode
+
+### 🎯 Extension Features
+- **One-click capture** from any webpage
+- **Automatic page detection** of URL and title
+- **Right-click context menu** integration
+- **Keyboard shortcut** (Cmd/Ctrl + Shift + Q)
+- **Same AI features** as the web app
+
 ## 📱 How to Use
 
 1. **Paste Article URL** - Enter the URL of any article you want to save
@@ -111,7 +136,7 @@ Required environment variables for the Worker:
 ## 🎯 Future Enhancements
 
 - [ ] **Mobile Apps**: iOS and Android versions
-- [ ] **Browser Extensions**: Chrome, Safari, Firefox extensions
+- [x] **Browser Extensions**: Chrome, Safari, Firefox extensions
 - [ ] **Better Article Parsing**: Integration with Readability.js or similar
 - [ ] **Custom Email Templates**: User-customizable formatting
 - [ ] **Batch Processing**: Handle multiple articles at once
