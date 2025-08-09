@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(wrangler deploy:*)",
+      "Bash(mkdir:*)",
+      "Bash(npm init:*)",
+      "Bash(vercel)",
+      "Bash(npm install:*)",
+      "Bash(vercel:*)",
+      "Bash(git init:*)",
+      "Bash(mv:*)",
+      "Bash(git add:*)"
+    ],
+    "deny": []
+  }
+}
