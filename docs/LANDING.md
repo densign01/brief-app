@@ -2,7 +2,7 @@
 
 > **Transform any article into a beautifully formatted email with intelligent AI summaries**
 
-[![Live Demo](https://img.shields.io/badge/Live-Demo-blue?style=for-the-badge)](https://quickcapture-frontend-mqijk85sg-densign01s-projects.vercel.app)
+[![Live Demo](https://img.shields.io/badge/Live-Demo-blue?style=for-the-badge)](https://quickcapture-frontend-pdpe4ufhu-densign01s-projects.vercel.app)
 [![GitHub](https://img.shields.io/badge/GitHub-Repository-black?style=for-the-badge&logo=github)](https://github.com/USERNAME/quickcapture)
 [![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)](../LICENSE)
 
@@ -181,7 +181,7 @@ Receive a beautifully formatted email in seconds with optional AI insights.
 ## 🎯 **Getting Started**
 
 ### **Try It Now** (30 seconds)
-1. **Visit**: [quickcapture-frontend-mqijk85sg-densign01s-projects.vercel.app](https://quickcapture-frontend-mqijk85sg-densign01s-projects.vercel.app)
+1. **Visit**: [quickcapture-frontend-pdpe4ufhu-densign01s-projects.vercel.app](https://quickcapture-frontend-pdpe4ufhu-densign01s-projects.vercel.app)
 2. **Paste**: Any article URL (try a news article)
 3. **Enter**: Your email address
 4. **Send**: Click the button and check your email!
@@ -269,7 +269,7 @@ QuickCapture was created to solve a real problem: **efficiently building persona
 
 ## 🎉 **Ready to Start?**
 
-### [**🚀 Try QuickCapture Now**](https://quickcapture-frontend-mqijk85sg-densign01s-projects.vercel.app)
+### [**🚀 Try QuickCapture Now**](https://quickcapture-frontend-pdpe4ufhu-densign01s-projects.vercel.app)
 
 *No signup required. Start saving articles to your email in 30 seconds.*
 

@@ -13,7 +13,7 @@ QuickCapture is a web application that allows users to save and summarize articl
 
 ## 🌐 Live Demo
 
-**Frontend**: [https://quickcapture-frontend-mqijk85sg-densign01s-projects.vercel.app](https://quickcapture-frontend-mqijk85sg-densign01s-projects.vercel.app)
+**Frontend**: [https://quickcapture-frontend-pdpe4ufhu-densign01s-projects.vercel.app](https://quickcapture-frontend-pdpe4ufhu-densign01s-projects.vercel.app)
 
 ## 📱 How to Use
 
