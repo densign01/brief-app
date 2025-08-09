@@ -1,0 +1,732 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QuickCapture</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+            background: #f8f9fa;
+            color: #333;
+            line-height: 1.5;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .container {
+            max-width: 480px;
+            margin: 0 auto;
+            background: white;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+        
+        .header {
+            background: #fff;
+            padding: 20px;
+            border-bottom: 1px solid #e5e5e5;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .header h1 {
+            font-size: 24px;
+            font-weight: 600;
+            color: #000;
+        }
+        
+        .settings-btn {
+            background: none;
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 4px;
+            color: #666;
+        }
+        
+        .settings-btn:hover {
+            background: #f5f5f5;
+        }
+        
+        .content {
+            flex: 1;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .url-input-section {
+            margin-bottom: 20px;
+        }
+        
+        .url-input-section label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #000;
+        }
+        
+        .url-input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 14px;
+            font-family: inherit;
+        }
+        
+        .url-input:focus {
+            outline: none;
+            border-color: #0066cc;
+            box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.1);
+        }
+        
+        .analyze-btn {
+            background: #0066cc;
+            color: white;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: pointer;
+            margin-top: 8px;
+        }
+        
+        .analyze-btn:hover {
+            background: #0052a3;
+        }
+        
+        .analyze-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        
+        .preview-card {
+            background: #f8f9fa;
+            border: 1px solid #e5e5e5;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 24px;
+            display: none;
+        }
+        
+        .preview-card.visible {
+            display: block;
+        }
+        
+        .preview-card .site {
+            color: #666;
+            font-size: 12px;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+            font-weight: 500;
+        }
+        
+        .preview-card .title {
+            font-size: 16px;
+            font-weight: 600;
+            margin: 4px 0 8px 0;
+            color: #000;
+        }
+        
+        .preview-card .url {
+            color: #0066cc;
+            font-size: 14px;
+            text-decoration: none;
+            word-break: break-all;
+        }
+        
+        .form-section {
+            margin-bottom: 24px;
+        }
+        
+        .form-section label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #000;
+        }
+        
+        .form-section input[type="email"] {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 14px;
+            font-family: inherit;
+        }
+        
+        .form-section input[type="email"]:focus {
+            outline: none;
+            border-color: #0066cc;
+            box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.1);
+        }
+        
+        .form-section textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 14px;
+            resize: vertical;
+            min-height: 80px;
+            font-family: inherit;
+        }
+        
+        .form-section textarea:focus {
+            outline: none;
+            border-color: #0066cc;
+            box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.1);
+        }
+        
+        .toggle-section {
+            background: #f8f9fa;
+            border: 1px solid #e5e5e5;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 24px;
+        }
+        
+        .toggle-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+        }
+        
+        .toggle-row:last-child {
+            margin-bottom: 0;
+        }
+        
+        .toggle-label {
+            font-weight: 600;
+            color: #000;
+        }
+        
+        .toggle-switch {
+            position: relative;
+            width: 44px;
+            height: 24px;
+            background: #ccc;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        
+        .toggle-switch.active {
+            background: #0066cc;
+        }
+        
+        .toggle-switch::after {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background: white;
+            border-radius: 50%;
+            top: 2px;
+            left: 2px;
+            transition: transform 0.3s;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+        }
+        
+        .toggle-switch.active::after {
+            transform: translateX(20px);
+        }
+        
+        .summary-options {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+        }
+        
+        .summary-option {
+            padding: 6px 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 16px;
+            font-size: 12px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .summary-option.active {
+            background: #0066cc;
+            color: white;
+            border-color: #0066cc;
+        }
+        
+        .summary-options.disabled {
+            opacity: 0.5;
+            pointer-events: none;
+        }
+        
+        .send-button {
+            background: #0066cc;
+            color: white;
+            border: none;
+            padding: 14px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+            margin-top: auto;
+        }
+        
+        .send-button:hover {
+            background: #0052a3;
+        }
+        
+        .send-button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+            color: #666;
+        }
+        
+        .success {
+            display: none;
+            text-align: center;
+            padding: 20px;
+            color: #059669;
+            background: #d1fae5;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .error {
+            display: none;
+            text-align: center;
+            padding: 20px;
+            color: #dc2626;
+            background: #fee2e2;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        
+        /* Settings Modal */
+        .settings-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        
+        .settings-modal.visible {
+            display: flex;
+        }
+        
+        .settings-content {
+            background: white;
+            padding: 24px;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 400px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        
+        .settings-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .settings-header h2 {
+            font-size: 20px;
+            font-weight: 600;
+            color: #000;
+        }
+        
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #666;
+            padding: 4px;
+        }
+        
+        .settings-section {
+            margin-bottom: 20px;
+        }
+        
+        .settings-section:last-child {
+            margin-bottom: 0;
+        }
+        
+        .settings-section h3 {
+            font-size: 16px;
+            font-weight: 600;
+            color: #000;
+            margin-bottom: 8px;
+        }
+        
+        .settings-section p {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 12px;
+        }
+        
+        .save-settings-btn {
+            background: #0066cc;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: pointer;
+            width: 100%;
+        }
+        
+        .save-settings-btn:hover {
+            background: #0052a3;
+        }
+        
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>QuickCapture</h1>
+            <button class="settings-btn" id="settings-btn" title="Settings">⚙️</button>
+        </div>
+        
+        <div class="content">
+            <div class="success" id="success-message">
+                Email sent successfully! 📧
+            </div>
+            
+            <div class="error" id="error-message">
+                Failed to send email. Please try again.
+            </div>
+            
+            <div class="url-input-section">
+                <label for="url-input">Article URL</label>
+                <input type="url" id="url-input" class="url-input" placeholder="https://example.com/article">
+                <button class="analyze-btn" id="analyze-btn">Analyze Article</button>
+            </div>
+            
+            <div class="preview-card" id="preview-card">
+                <div class="site" id="preview-site">Loading...</div>
+                <div class="title" id="preview-title">Loading...</div>
+                <a href="#" class="url" id="preview-url" target="_blank">Loading...</a>
+            </div>
+            
+            <div class="form-section">
+                <label for="email">Your Email Address</label>
+                <input type="email" id="email" placeholder="you@example.com" required>
+            </div>
+            
+            <div class="form-section">
+                <label for="context">Add a note (optional)</label>
+                <textarea id="context" placeholder="Add any context or notes about this link..."></textarea>
+            </div>
+            
+            <div class="toggle-section">
+                <div class="toggle-row">
+                    <span class="toggle-label">AI Summary</span>
+                    <div class="toggle-switch" id="ai-toggle"></div>
+                </div>
+                <div class="summary-options disabled" id="summary-options">
+                    <div class="summary-option active" data-length="short">Short</div>
+                    <div class="summary-option" data-length="long">Long</div>
+                </div>
+            </div>
+            
+            <div class="loading" id="loading">
+                Sending email...
+            </div>
+            
+            <button class="send-button" id="send-button">Send to Email</button>
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div class="settings-modal" id="settings-modal">
+        <div class="settings-content">
+            <div class="settings-header">
+                <h2>Settings</h2>
+                <button class="close-btn" id="close-settings">×</button>
+            </div>
+            
+            <div class="settings-section">
+                <h3>About QuickCapture</h3>
+                <p>QuickCapture lets you easily save and summarize articles by sending them to your email with optional AI-generated summaries.</p>
+            </div>
+            
+            <div class="settings-section">
+                <h3>How to Use</h3>
+                <p>1. Paste an article URL<br>
+                2. Click "Analyze Article"<br>
+                3. Enter your email address<br>
+                4. Optionally add a note and enable AI summary<br>
+                5. Click "Send to Email"</p>
+            </div>
+            
+            <div class="settings-section">
+                <h3>Privacy</h3>
+                <p>Your email address is only used to send you the article summary and is not stored or shared.</p>
+            </div>
+            
+            <button class="save-settings-btn" id="save-settings">Close</button>
+        </div>
+    </div>
+
+    <script>
+        let currentData = null;
+        let aiToggleState = false;
+        let selectedLength = 'short';
+
+        // Initialize on page load
+        window.addEventListener('DOMContentLoaded', () => {
+            // Check for URL parameters (from bookmarklet - keep for backward compatibility)
+            const params = new URLSearchParams(window.location.search);
+            const data = params.get('data');
+            
+            if (data) {
+                try {
+                    currentData = JSON.parse(decodeURIComponent(data));
+                    updatePreview(currentData);
+                    document.getElementById('preview-card').classList.add('visible');
+                    document.getElementById('url-input').value = currentData.url;
+                } catch (error) {
+                    console.error('Error parsing URL data:', error);
+                }
+            }
+
+            // Load saved email from localStorage
+            const savedEmail = localStorage.getItem('quickcapture-email');
+            if (savedEmail) {
+                document.getElementById('email').value = savedEmail;
+            }
+
+            setupEventListeners();
+        });
+
+        function setupEventListeners() {
+            // URL Analysis
+            document.getElementById('analyze-btn').addEventListener('click', analyzeUrl);
+            document.getElementById('url-input').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    analyzeUrl();
+                }
+            });
+
+            // Settings
+            document.getElementById('settings-btn').addEventListener('click', () => {
+                document.getElementById('settings-modal').classList.add('visible');
+            });
+            
+            document.getElementById('close-settings').addEventListener('click', () => {
+                document.getElementById('settings-modal').classList.remove('visible');
+            });
+            
+            document.getElementById('save-settings').addEventListener('click', () => {
+                document.getElementById('settings-modal').classList.remove('visible');
+            });
+
+            // Close modal when clicking outside
+            document.getElementById('settings-modal').addEventListener('click', (e) => {
+                if (e.target === e.currentTarget) {
+                    document.getElementById('settings-modal').classList.remove('visible');
+                }
+            });
+
+            // AI Toggle
+            document.getElementById('ai-toggle').addEventListener('click', () => {
+                aiToggleState = !aiToggleState;
+                const toggle = document.getElementById('ai-toggle');
+                const options = document.getElementById('summary-options');
+                
+                if (aiToggleState) {
+                    toggle.classList.add('active');
+                    options.classList.remove('disabled');
+                } else {
+                    toggle.classList.remove('active');
+                    options.classList.add('disabled');
+                }
+            });
+
+            // Summary Length Options
+            document.querySelectorAll('.summary-option').forEach(option => {
+                option.addEventListener('click', () => {
+                    if (!aiToggleState) return;
+                    
+                    document.querySelectorAll('.summary-option').forEach(opt => 
+                        opt.classList.remove('active'));
+                    option.classList.add('active');
+                    selectedLength = option.dataset.length;
+                });
+            });
+
+            // Email save
+            document.getElementById('email').addEventListener('change', (e) => {
+                localStorage.setItem('quickcapture-email', e.target.value);
+            });
+
+            // Send Button
+            document.getElementById('send-button').addEventListener('click', sendEmail);
+        }
+
+        function analyzeUrl() {
+            const urlInput = document.getElementById('url-input');
+            const url = urlInput.value.trim();
+            
+            if (!url) {
+                showError('Please enter a URL');
+                return;
+            }
+
+            try {
+                const parsedUrl = new URL(url);
+                const title = extractTitleFromUrl(parsedUrl);
+                const site = parsedUrl.hostname;
+
+                currentData = { url, title, site };
+                updatePreview(currentData);
+                document.getElementById('preview-card').classList.add('visible');
+                
+                // Auto-focus email if empty
+                const emailInput = document.getElementById('email');
+                if (!emailInput.value) {
+                    emailInput.focus();
+                }
+                
+            } catch (error) {
+                showError('Please enter a valid URL');
+            }
+        }
+
+        function extractTitleFromUrl(url) {
+            // Extract a title from the URL path
+            const pathname = url.pathname;
+            const parts = pathname.split('/').filter(part => part.length > 0);
+            
+            if (parts.length === 0) {
+                return url.hostname;
+            }
+            
+            const lastPart = parts[parts.length - 1];
+            // Remove file extensions and convert dashes/underscores to spaces
+            return lastPart
+                .replace(/\.[^.]*$/, '') // Remove file extension
+                .replace(/[-_]/g, ' ')   // Replace dashes and underscores
+                .replace(/\b\w/g, l => l.toUpperCase()); // Capitalize words
+        }
+
+        function updatePreview(data) {
+            document.getElementById('preview-site').textContent = data.site.toUpperCase();
+            document.getElementById('preview-title').textContent = data.title;
+            document.getElementById('preview-url').textContent = data.url;
+            document.getElementById('preview-url').href = data.url;
+        }
+
+        function showError(message) {
+            const errorElement = document.getElementById('error-message');
+            errorElement.textContent = message;
+            errorElement.style.display = 'block';
+            setTimeout(() => {
+                errorElement.style.display = 'none';
+            }, 5000);
+        }
+
+        function showSuccess(message) {
+            const successElement = document.getElementById('success-message');
+            successElement.textContent = message;
+            successElement.style.display = 'block';
+            setTimeout(() => {
+                successElement.style.display = 'none';
+            }, 5000);
+        }
+
+        async function sendEmail() {
+            if (!currentData) {
+                showError('Please analyze an article first');
+                return;
+            }
+
+            const email = document.getElementById('email').value.trim();
+            if (!email) {
+                showError('Please enter your email address');
+                document.getElementById('email').focus();
+                return;
+            }
+
+            const contextValue = document.getElementById('context').value;
+            const sendButton = document.getElementById('send-button');
+            const loading = document.getElementById('loading');
+
+            // Hide previous messages
+            document.getElementById('success-message').style.display = 'none';
+            document.getElementById('error-message').style.display = 'none';
+            
+            // Show loading state
+            sendButton.disabled = true;
+            loading.style.display = 'block';
+
+            try {
+                const response = await fetch('https://quickcapture-api.daniel-ensign.workers.dev', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        url: currentData.url,
+                        title: currentData.title,
+                        site: currentData.site,
+                        context: contextValue,
+                        aiSummary: aiToggleState,
+                        summaryLength: selectedLength,
+                        email: email
+                    })
+                });
+
+                const result = await response.json();
+                
+                if (response.ok && result.success) {
+                    showSuccess('Email sent successfully! 📧');
+                    // Clear form
+                    document.getElementById('context').value = '';
+                } else {
+                    throw new Error(result.error || 'Unknown error');
+                }
+            } catch (error) {
+                console.error('Error sending email:', error);
+                showError(`Failed to send email: ${error.message}`);
+            } finally {
+                loading.style.display = 'none';
+                sendButton.disabled = false;
+            }
+        }
+    </script>
+</body>
+</html>
