@@ -1,6 +1,8 @@
 {
-	"name": "quickcapture-api",
-	"version": "0.0.0",
+	"name": "quickcapture",
+	"version": "1.0.0",
+	"description": "Quick capture tool with API and frontend",
+	"main": "index.js",
 	"private": true,
 	"scripts": {
 		"deploy": "wrangler deploy",
@@ -9,6 +11,9 @@
 		"test": "vitest",
 		"cf-typegen": "wrangler types"
 	},
+	"keywords": ["quickcapture", "api", "frontend"],
+	"author": "",
+	"license": "ISC",
 	"devDependencies": {
 		"@cloudflare/vitest-pool-workers": "^0.8.19",
 		"typescript": "^5.5.2",
