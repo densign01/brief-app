@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>QuickCapture</title>
+    <title>Brief</title>
     <style>
         * {
             box-sizing: border-box;
@@ -12,9 +12,9 @@
         }
         
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
-            background: #f8f9fa;
-            color: #333;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            background: #ffffff;
+            color: #1a1a1a;
             line-height: 1.5;
             min-height: 100vh;
             display: flex;
@@ -32,9 +32,9 @@
         }
         
         .header {
-            background: #fff;
+            background: #ffffff;
             padding: 20px;
-            border-bottom: 1px solid #e5e5e5;
+            border-bottom: 1px solid #f0f0f0;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -42,22 +42,24 @@
         
         .header h1 {
             font-size: 24px;
-            font-weight: 600;
-            color: #000;
+            font-weight: 700;
+            color: #1a1a1a;
+            letter-spacing: -0.5px;
         }
         
         .settings-btn {
             background: none;
             border: none;
-            font-size: 20px;
             cursor: pointer;
             padding: 8px;
-            border-radius: 4px;
-            color: #666;
+            border-radius: 8px;
+            color: #6b7280;
+            transition: background 0.2s ease, color 0.2s ease;
         }
         
         .settings-btn:hover {
-            background: #f5f5f5;
+            background: #f3f4f6;
+            color: #4f46e5;
         }
         
         .content {
@@ -89,12 +91,12 @@
         
         .url-input:focus {
             outline: none;
-            border-color: #0066cc;
-            box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.1);
+            border-color: #4f46e5;
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
         }
         
         .analyze-btn {
-            background: #0066cc;
+            background: #4f46e5;
             color: white;
             border: none;
             padding: 10px 16px;
@@ -105,7 +107,7 @@
         }
         
         .analyze-btn:hover {
-            background: #0052a3;
+            background: #4338ca;
         }
         
         .analyze-btn:disabled {
@@ -142,7 +144,7 @@
         }
         
         .preview-card .url {
-            color: #0066cc;
+            color: #4f46e5;
             font-size: 14px;
             text-decoration: none;
             word-break: break-all;
@@ -170,8 +172,8 @@
         
         .form-section input[type="email"]:focus {
             outline: none;
-            border-color: #0066cc;
-            box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.1);
+            border-color: #4f46e5;
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
         }
         
         .form-section textarea {
@@ -187,8 +189,8 @@
         
         .form-section textarea:focus {
             outline: none;
-            border-color: #0066cc;
-            box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.1);
+            border-color: #4f46e5;
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
         }
         
         .toggle-section {
@@ -226,7 +228,7 @@
         }
         
         .toggle-switch.active {
-            background: #0066cc;
+            background: #4f46e5;
         }
         
         .toggle-switch::after {
@@ -263,9 +265,9 @@
         }
         
         .summary-option.active {
-            background: #0066cc;
+            background: #4f46e5;
             color: white;
-            border-color: #0066cc;
+            border-color: #4f46e5;
         }
         
         .summary-options.disabled {
@@ -274,7 +276,7 @@
         }
         
         .send-button {
-            background: #0066cc;
+            background: #4f46e5;
             color: white;
             border: none;
             padding: 14px 24px;
@@ -287,7 +289,7 @@
         }
         
         .send-button:hover {
-            background: #0052a3;
+            background: #4338ca;
         }
         
         .send-button:disabled {
@@ -394,7 +396,7 @@
         }
         
         .save-settings-btn {
-            background: #0066cc;
+            background: #4f46e5;
             color: white;
             border: none;
             padding: 12px 24px;
@@ -405,7 +407,7 @@
         }
         
         .save-settings-btn:hover {
-            background: #0052a3;
+            background: #4338ca;
         }
         
         .hidden {
@@ -416,8 +418,13 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>QuickCapture</h1>
-            <button class="settings-btn" id="settings-btn" title="Settings">⚙️</button>
+            <h1>Brief</h1>
+            <button class="settings-btn" id="settings-btn" title="Settings">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="3"/>
+                    <path d="M12 1v6m0 6v6M1 12h6m6 0h6"/>
+                </svg>
+            </button>
         </div>
         
         <div class="content">
@@ -479,8 +486,8 @@
             </div>
             
             <div class="settings-section">
-                <h3>About QuickCapture</h3>
-                <p>QuickCapture lets you easily save and summarize articles by sending them to your email with optional AI-generated summaries.</p>
+                <h3>About Brief</h3>
+                <p>Brief lets you save and summarize articles with clean, simple email delivery and optional AI-generated summaries.</p>
             </div>
             
             <div class="settings-section">
@@ -524,7 +531,7 @@
             }
 
             // Load saved email from localStorage
-            const savedEmail = localStorage.getItem('quickcapture-email');
+            const savedEmail = localStorage.getItem('brief-email');
             if (savedEmail) {
                 document.getElementById('email').value = savedEmail;
             }
@@ -590,7 +597,7 @@
 
             // Email save
             document.getElementById('email').addEventListener('change', (e) => {
-                localStorage.setItem('quickcapture-email', e.target.value);
+                localStorage.setItem('brief-email', e.target.value);
             });
 
             // Send Button
