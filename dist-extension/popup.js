@@ -5,10 +5,32 @@ let selectedLength = 'short';
 
 // Initialize popup when opened
 document.addEventListener('DOMContentLoaded', async () => {
-    // Load saved email from extension storage
-    chrome.storage.sync.get(['brief-email'], (result) => {
+    // Load saved settings from extension storage
+    chrome.storage.sync.get(['brief-email', 'brief-ai-default', 'brief-length-default'], (result) => {
         if (result['brief-email']) {
             document.getElementById('email').value = result['brief-email'];
+            document.getElementById('settings-email').value = result['brief-email'];
+        }
+        
+        // Apply default AI toggle setting
+        if (result['brief-ai-default']) {
+            aiToggleState = result['brief-ai-default'];
+            const toggle = document.getElementById('ai-toggle');
+            const options = document.getElementById('summary-options');
+            if (aiToggleState) {
+                toggle.classList.add('active');
+                options.classList.remove('disabled');
+            }
+            document.getElementById('default-ai-toggle').classList.toggle('active', result['brief-ai-default']);
+        }
+        
+        // Apply default length setting
+        if (result['brief-length-default']) {
+            selectedLength = result['brief-length-default'];
+            document.querySelectorAll('.summary-option').forEach(opt => {
+                opt.classList.toggle('active', opt.dataset.length === selectedLength);
+            });
+            document.getElementById('default-length-toggle').classList.toggle('active', result['brief-length-default'] === 'long');
         }
     });
 
@@ -70,6 +92,43 @@ function getCurrentPageInfo() {
 }
 
 function setupEventListeners() {
+    // Settings Modal
+    document.getElementById('settings-btn').addEventListener('click', () => {
+        document.getElementById('settings-modal').classList.add('visible');
+    });
+    
+    document.getElementById('close-settings').addEventListener('click', () => {
+        document.getElementById('settings-modal').classList.remove('visible');
+    });
+    
+    document.getElementById('settings-modal').addEventListener('click', (e) => {
+        if (e.target === e.currentTarget) {
+            document.getElementById('settings-modal').classList.remove('visible');
+        }
+    });
+    
+    // Settings functionality
+    document.getElementById('settings-email').addEventListener('change', (e) => {
+        const email = e.target.value;
+        chrome.storage.sync.set({ 'brief-email': email });
+        document.getElementById('email').value = email;
+    });
+    
+    document.getElementById('default-ai-toggle').addEventListener('click', () => {
+        const toggle = document.getElementById('default-ai-toggle');
+        const isActive = !toggle.classList.contains('active');
+        toggle.classList.toggle('active', isActive);
+        chrome.storage.sync.set({ 'brief-ai-default': isActive });
+    });
+    
+    document.getElementById('default-length-toggle').addEventListener('click', () => {
+        const toggle = document.getElementById('default-length-toggle');
+        const isLong = !toggle.classList.contains('active');
+        toggle.classList.toggle('active', isLong);
+        const length = isLong ? 'long' : 'short';
+        chrome.storage.sync.set({ 'brief-length-default': length });
+    });
+
     // AI Toggle
     document.getElementById('ai-toggle').addEventListener('click', () => {
         aiToggleState = !aiToggleState;

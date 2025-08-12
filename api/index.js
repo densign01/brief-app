@@ -67,7 +67,14 @@ export default {
 			summaryLength
 		  );
 		  
-		  if (summaryText) {
+		  if (summaryText === 'PAYWALL_DETECTED') {
+			summaryHTML = `
+			  <div style="margin: 20px 0; padding: 16px; background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 8px;">
+				<h2 style="font-size: 18px; font-weight: bold; color: #856404; margin-bottom: 8px;">⚠️ Paywall Detected</h2>
+				<p style="color: #856404; margin: 0; font-size: 14px;">Paywall Detected: this article is behind a paywall and could not be accessed for summarization.</p>
+			  </div>
+			`;
+		  } else if (summaryText) {
 			const bullets = summaryText.split('\n').filter(line => line.trim());
 			summaryHTML = `
 			  <div style="margin: 20px 0;">
@@ -146,31 +153,24 @@ export default {
   
   async function generateSummary(apiKey, url, title, summaryLength) {
 	try {
-	  // First, try to fetch article content
-	  const articleResponse = await fetch(url);
+	  // First, try to fetch article content directly
+	  let html = await tryFetchArticle(url);
+	  let contentSource = 'direct';
 	  
-	  // Check if we got a valid response
-	  if (!articleResponse.ok) {
-		console.log(`Failed to fetch article (${articleResponse.status}): ${url}`);
-		// Fallback to title-only summary for paywalled/restricted content
-		return generateTitleBasedSummary(apiKey, title, url, summaryLength);
+	  // If direct fetch failed or hit paywall, try archive.is
+	  if (!html) {
+		console.log('Direct fetch failed, trying archive.is...');
+		html = await tryFetchFromArchive(url);
+		contentSource = 'archive';
 	  }
 	  
-	  const html = await articleResponse.text();
+	  // If both failed, return paywall message instead of generating summary
+	  if (!html) {
+		console.log('All paywall bypass methods failed, skipping AI summary');
+		return 'PAYWALL_DETECTED';
+	  }
 	  
-	  // Check if content looks like a paywall or error page
-	  const lowercaseHtml = html.toLowerCase();
-	  const paywallIndicators = [
-		'paywall', 'subscribe', 'subscription required', 'premium content',
-		'sign in', 'login required', 'access denied', 'error 520',
-		'cloudflare', 'blocked', 'forbidden'
-	  ];
-	  
-	  const hasPaywallIndicators = paywallIndicators.some(indicator => 
-		lowercaseHtml.includes(indicator)
-	  );
-	  
-	  // Basic HTML stripping (you can enhance this)
+	  // Basic HTML stripping
 	  const textContent = html
 		.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
 		.replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, '')
@@ -178,11 +178,15 @@ export default {
 		.replace(/\s+/g, ' ')
 		.substring(0, 10000); // Limit to first 10k chars
 
-	  // If content is too short or has paywall indicators, use title-based summary
-	  if (textContent.length < 200 || hasPaywallIndicators) {
-		console.log('Content appears to be paywalled or insufficient, using title-based summary');
-		return generateTitleBasedSummary(apiKey, title, url, summaryLength);
+	  // Final check - if content is still too short, return paywall message
+	  if (textContent.length < 200) {
+		console.log(`Content too short (${textContent.length} chars), skipping AI summary`);
+		return 'PAYWALL_DETECTED';
 	  }
+	  
+	  console.log(`Successfully fetched content from ${contentSource} (${textContent.length} chars)`);
+	  
+	  // Continue with existing content processing...
   
 	  const prompt = summaryLength === 'short' ? `
 You are a professional news summarizer. Create a concise 3-bullet summary of this article for busy executives.
@@ -271,6 +275,152 @@ Content: ${textContent}
 	  return null;
 	}
   }
+
+async function tryFetchArticle(url) {
+  try {
+    const articleResponse = await fetch(url, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+      }
+    });
+    
+    if (!articleResponse.ok) {
+      console.log(`Direct fetch failed (${articleResponse.status}): ${url}`);
+      return null;
+    }
+    
+    const html = await articleResponse.text();
+    
+    // Check if content looks like a paywall or error page
+    const lowercaseHtml = html.toLowerCase();
+    const paywallIndicators = [
+      'paywall', 'subscribe', 'subscription required', 'premium content',
+      'sign in', 'login required', 'access denied', 'error 520',
+      'cloudflare', 'blocked', 'forbidden', 'subscriber exclusive',
+      'become a subscriber', 'this article is for subscribers'
+    ];
+    
+    const hasPaywallIndicators = paywallIndicators.some(indicator => 
+      lowercaseHtml.includes(indicator)
+    );
+    
+    if (hasPaywallIndicators) {
+      console.log('Paywall detected in direct fetch');
+      return null;
+    }
+    
+    return html;
+  } catch (error) {
+    console.log('Direct fetch error:', error.message);
+    return null;
+  }
+}
+
+async function tryFetchFromArchive(url) {
+  // Try multiple archive services
+  const archiveMethods = [
+    // Method 1: archive.today/archive.is
+    async () => {
+      try {
+        const archiveUrl = `https://archive.today/newest/${encodeURIComponent(url)}`;
+        const response = await fetch(archiveUrl, {
+          headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' },
+          redirect: 'manual'
+        });
+        
+        if (response.status === 302 || response.status === 301) {
+          const location = response.headers.get('location');
+          if (location) {
+            const finalResponse = await fetch(location, {
+              headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' }
+            });
+            if (finalResponse.ok) {
+              console.log('Successfully fetched from archive.today');
+              return await finalResponse.text();
+            }
+          }
+        }
+        return null;
+      } catch (error) {
+        console.log('Archive.today error:', error.message);
+        return null;
+      }
+    },
+    
+    // Method 2: 12ft.io (removes paywall)
+    async () => {
+      try {
+        const twelveFtUrl = `https://12ft.io/${url}`;
+        const response = await fetch(twelveFtUrl, {
+          headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' }
+        });
+        
+        if (response.ok) {
+          const html = await response.text();
+          // Check if 12ft actually worked (not showing error page)
+          if (!html.toLowerCase().includes('12ft has been disabled') && 
+              !html.toLowerCase().includes('not available') &&
+              html.length > 1000) {
+            console.log('Successfully fetched from 12ft.io');
+            return html;
+          }
+        }
+        return null;
+      } catch (error) {
+        console.log('12ft.io error:', error.message);
+        return null;
+      }
+    },
+    
+    // Method 3: Try with different headers (Google Bot)
+    async () => {
+      try {
+        const response = await fetch(url, {
+          headers: {
+            'User-Agent': 'Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)',
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+            'Accept-Language': 'en-US,en;q=0.5',
+            'Cache-Control': 'no-cache'
+          }
+        });
+        
+        if (response.ok) {
+          const html = await response.text();
+          // Check if this bypassed the paywall
+          const lowercaseHtml = html.toLowerCase();
+          const paywallIndicators = [
+            'subscribe', 'subscription required', 'sign in', 'login required',
+            'subscriber exclusive', 'become a subscriber'
+          ];
+          
+          const hasPaywall = paywallIndicators.some(indicator => 
+            lowercaseHtml.includes(indicator)
+          );
+          
+          if (!hasPaywall && html.length > 1000) {
+            console.log('Successfully fetched with Googlebot User-Agent');
+            return html;
+          }
+        }
+        return null;
+      } catch (error) {
+        console.log('Googlebot fetch error:', error.message);
+        return null;
+      }
+    }
+  ];
+  
+  // Try each method in sequence
+  for (const method of archiveMethods) {
+    const result = await method();
+    if (result) {
+      return result;
+    }
+  }
+  
+  console.log('All archive methods failed');
+  return null;
+}
 
 function getWebsiteName(site) {
   const siteMap = {

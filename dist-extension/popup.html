@@ -293,12 +293,156 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+
+        .settings-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 8px;
+            color: #6b7280;
+            transition: background 0.2s ease, color 0.2s ease;
+        }
+
+        .settings-btn:hover {
+            background: #f3f4f6;
+            color: #4f46e5;
+        }
+
+        .settings-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .settings-modal.visible {
+            display: flex;
+        }
+
+        .settings-content {
+            background: #ffffff;
+            padding: 24px;
+            border-radius: 16px;
+            width: 320px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .settings-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .settings-header h2 {
+            font-size: 18px;
+            font-weight: 700;
+            color: #1a1a1a;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+            color: #6b7280;
+            padding: 4px;
+            border-radius: 4px;
+        }
+
+        .close-btn:hover {
+            background: #f3f4f6;
+        }
+
+        .setting-group {
+            margin-bottom: 20px;
+        }
+
+        .setting-group:last-child {
+            margin-bottom: 0;
+        }
+
+        .setting-group label {
+            display: block;
+            font-weight: 600;
+            color: #1a1a1a;
+            font-size: 14px;
+            margin-bottom: 6px;
+        }
+
+        .setting-group input[type="email"] {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #e5e7eb;
+            border-radius: 6px;
+            font-size: 14px;
+            font-family: inherit;
+        }
+
+        .setting-group input[type="email"]:focus {
+            outline: none;
+            border-color: #4f46e5;
+            box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.1);
+        }
+
+        .setting-toggle {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .setting-toggle-switch {
+            position: relative;
+            width: 36px;
+            height: 20px;
+            background: #d1d5db;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .setting-toggle-switch.active {
+            background: #4f46e5;
+        }
+
+        .setting-toggle-switch::after {
+            content: '';
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            background: #ffffff;
+            border-radius: 50%;
+            top: 2px;
+            left: 2px;
+            transition: transform 0.3s ease;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+        }
+
+        .setting-toggle-switch.active::after {
+            transform: translateX(16px);
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
             <h1>Brief</h1>
+            <button class="settings-btn" id="settings-btn" title="Settings">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                    <rect x="3" y="3" width="7" height="7" rx="1"/>
+                    <rect x="14" y="3" width="7" height="7" rx="1"/>
+                    <rect x="3" y="14" width="7" height="7" rx="1"/>
+                    <rect x="14" y="14" width="7" height="7" rx="1"/>
+                </svg>
+            </button>
         </div>
         
         <div class="content">
@@ -342,6 +486,35 @@
             </div>
             
             <button class="send-button" id="send-button">Send to Email</button>
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div class="settings-modal" id="settings-modal">
+        <div class="settings-content">
+            <div class="settings-header">
+                <h2>Settings</h2>
+                <button class="close-btn" id="close-settings">×</button>
+            </div>
+            
+            <div class="setting-group">
+                <label for="settings-email">Default Email Address</label>
+                <input type="email" id="settings-email" placeholder="you@example.com">
+            </div>
+            
+            <div class="setting-group">
+                <div class="setting-toggle">
+                    <label>Enable AI Summary by Default</label>
+                    <div class="setting-toggle-switch" id="default-ai-toggle"></div>
+                </div>
+            </div>
+            
+            <div class="setting-group">
+                <div class="setting-toggle">
+                    <label>Default Summary Length: Long</label>
+                    <div class="setting-toggle-switch" id="default-length-toggle"></div>
+                </div>
+            </div>
         </div>
     </div>
 
