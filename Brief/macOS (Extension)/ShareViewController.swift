@@ -6,7 +6,7 @@ class ShareViewController: NSViewController {
     private var pageURL: String = ""
     private var pageTitle: String = ""
 
-    private let appGroup = "group.com.quickcapture.brief"
+    private let appGroup = "group.com.danielensign.Brief"
 
     override func loadView() {
         // Create a basic view first

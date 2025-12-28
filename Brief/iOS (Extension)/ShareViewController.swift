@@ -7,7 +7,7 @@ class ShareViewController: UIViewController {
     private var pageTitle: String = ""
     private var hostingController: UIHostingController<ShareView>?
 
-    private let appGroup = "group.com.quickcapture.brief"
+    private let appGroup = "group.com.danielensign.Brief"
 
     override func viewDidLoad() {
         super.viewDidLoad()

@@ -14,7 +14,7 @@ struct ShareView: View {
     @State private var isLoading = false
     @State private var errorMessage: String?
 
-    private let appGroup = "group.com.quickcapture.brief"
+    private let appGroup = "group.com.danielensign.Brief"
 
     init(url: String, pageTitle: String, onSend: @escaping (String?, Bool, String) -> Void, onCancel: @escaping () -> Void) {
         self.url = url
@@ -23,7 +23,7 @@ struct ShareView: View {
         self.onCancel = onCancel
 
         // Load preferences from app group
-        let defaults = UserDefaults(suiteName: "group.com.quickcapture.brief")
+        let defaults = UserDefaults(suiteName: "group.com.danielensign.Brief")
         _aiSummaryEnabled = State(initialValue: defaults?.bool(forKey: "aiSummaryEnabled") ?? true)
         _summaryLength = State(initialValue: defaults?.string(forKey: "summaryLength") ?? "short")
     }

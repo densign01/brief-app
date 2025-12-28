@@ -10,7 +10,7 @@ Streamline the Brief project and prepare iOS/macOS app for TestFlight submission
 ## Key Decisions
 - Using unified `Brief/` Xcode project for both iOS and macOS
 - Share Extension architecture (not Safari Web Extension)
-- App Group: `group.com.quickcapture.brief`
+- App Group: `group.com.danielensign.Brief`
 - Bundle ID: `com.danielensign.Brief`
 - Deployment targets: iOS 17.0, macOS 14.0
 
@@ -33,8 +33,8 @@ Streamline the Brief project and prepare iOS/macOS app for TestFlight submission
 - [x] Test macOS build - SUCCESS
 - [x] Commit fixes (895b06d)
 
-### Phase 3: TestFlight Submission [PENDING]
-- [ ] Register bundle IDs in Apple Developer portal
+### Phase 3: TestFlight Submission [IN PROGRESS]
+- [x] Register bundle IDs in Apple Developer portal
 - [ ] Let Xcode create provisioning profiles
 - [ ] Archive iOS build
 - [ ] Archive macOS build
@@ -42,7 +42,7 @@ Streamline the Brief project and prepare iOS/macOS app for TestFlight submission
 - [ ] Configure TestFlight metadata
 
 ## Open Questions
-- [ ] Are bundle IDs registered in Apple Developer portal?
+- [x] Are bundle IDs registered in Apple Developer portal? YES
 - [ ] Is there a privacy policy URL for App Store Connect?
 
 ## Working Set

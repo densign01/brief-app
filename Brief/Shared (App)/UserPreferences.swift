@@ -3,7 +3,7 @@ import Foundation
 class UserPreferences: ObservableObject {
     static let shared = UserPreferences()
     
-    private let userDefaults = UserDefaults(suiteName: "group.com.quickcapture.brief") ?? UserDefaults.standard
+    private let userDefaults = UserDefaults(suiteName: "group.com.danielensign.Brief") ?? UserDefaults.standard
     
     @Published var email: String {
         didSet {

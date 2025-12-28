@@ -41,7 +41,7 @@ All targets need the same App Group for sharing preferences:
 2. Go to "Signing & Capabilities"
 3. Click "+ Capability"
 4. Add "App Groups"
-5. Add: `group.com.quickcapture.brief`
+5. Add: `group.com.danielensign.Brief`
 
 ### 4. Update Extension Targets (if needed)
 The extension targets should be configured as **Share Extensions** (not Safari Web Extensions):
