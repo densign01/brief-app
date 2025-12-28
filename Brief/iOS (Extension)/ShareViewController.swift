@@ -80,9 +80,107 @@ class ShareViewController: UIViewController {
             }
         }
 
-        group.notify(queue: .main) {
-            completion()
+        group.notify(queue: .main) { [weak self] in
+            // If we have a URL but no title, fetch it from the page
+            if let self = self, !self.pageURL.isEmpty && self.pageTitle.isEmpty {
+                Task {
+                    await self.fetchTitleFromURL()
+                    await MainActor.run {
+                        completion()
+                    }
+                }
+            } else {
+                completion()
+            }
         }
+    }
+
+    private func fetchTitleFromURL() async {
+        guard let url = URL(string: pageURL) else { return }
+        
+        do {
+            let (data, _) = try await URLSession.shared.data(from: url)
+            guard let html = String(data: data, encoding: .utf8) else { return }
+            
+            // Try og:title first (most reliable for articles)
+            if let ogTitle = extractMetaContent(from: html, property: "og:title") {
+                pageTitle = ogTitle
+                return
+            }
+            
+            // Try twitter:title
+            if let twitterTitle = extractMetaContent(from: html, name: "twitter:title") {
+                pageTitle = twitterTitle
+                return
+            }
+            
+            // Fall back to <title> tag
+            if let titleMatch = html.range(of: "<title[^>]*>([^<]+)</title>", options: .regularExpression) {
+                var title = String(html[titleMatch])
+                title = title.replacingOccurrences(of: "<title[^>]*>", with: "", options: .regularExpression)
+                title = title.replacingOccurrences(of: "</title>", with: "")
+                title = title.trimmingCharacters(in: .whitespacesAndNewlines)
+                
+                // Clean up common suffixes
+                let suffixes = [" - The New York Times", " | CNN", " - BBC News", " - Reuters", 
+                               " - The Washington Post", " - WSJ", " | AP News"]
+                for suffix in suffixes {
+                    if title.hasSuffix(suffix) {
+                        title = String(title.dropLast(suffix.count))
+                        break
+                    }
+                }
+                
+                if !title.isEmpty {
+                    pageTitle = title
+                }
+            }
+        } catch {
+            // Silently fail - we'll just use "Shared Link" as fallback
+        }
+    }
+    
+    private func extractMetaContent(from html: String, property: String) -> String? {
+        // Match: <meta property="og:title" content="Article Title">
+        let pattern = "<meta[^>]+property=[\"']\(property)[\"'][^>]+content=[\"']([^\"']+)[\"']"
+        if let match = html.range(of: pattern, options: .regularExpression) {
+            let matchStr = String(html[match])
+            if let contentMatch = matchStr.range(of: "content=[\"']([^\"']+)[\"']", options: .regularExpression) {
+                var content = String(matchStr[contentMatch])
+                content = content.replacingOccurrences(of: "content=[\"']", with: "", options: .regularExpression)
+                content = content.replacingOccurrences(of: "[\"']$", with: "", options: .regularExpression)
+                return content.trimmingCharacters(in: .whitespacesAndNewlines)
+            }
+        }
+        
+        // Try alternate order: content before property
+        let altPattern = "<meta[^>]+content=[\"']([^\"']+)[\"'][^>]+property=[\"']\(property)[\"']"
+        if let match = html.range(of: altPattern, options: .regularExpression) {
+            let matchStr = String(html[match])
+            if let contentMatch = matchStr.range(of: "content=[\"']([^\"']+)[\"']", options: .regularExpression) {
+                var content = String(matchStr[contentMatch])
+                content = content.replacingOccurrences(of: "content=[\"']", with: "", options: .regularExpression)
+                content = content.replacingOccurrences(of: "[\"']$", with: "", options: .regularExpression)
+                return content.trimmingCharacters(in: .whitespacesAndNewlines)
+            }
+        }
+        
+        return nil
+    }
+    
+    private func extractMetaContent(from html: String, name: String) -> String? {
+        // Match: <meta name="twitter:title" content="Article Title">
+        let pattern = "<meta[^>]+name=[\"']\(name)[\"'][^>]+content=[\"']([^\"']+)[\"']"
+        if let match = html.range(of: pattern, options: .regularExpression) {
+            let matchStr = String(html[match])
+            if let contentMatch = matchStr.range(of: "content=[\"']([^\"']+)[\"']", options: .regularExpression) {
+                var content = String(matchStr[contentMatch])
+                content = content.replacingOccurrences(of: "content=[\"']", with: "", options: .regularExpression)
+                content = content.replacingOccurrences(of: "[\"']$", with: "", options: .regularExpression)
+                return content.trimmingCharacters(in: .whitespacesAndNewlines)
+            }
+        }
+        return nil
     }
 
     private func setupUI() {

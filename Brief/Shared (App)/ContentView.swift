@@ -321,16 +321,6 @@ struct SettingsView: View {
                     .foregroundColor(.secondary)
             }
             
-            VStack(alignment: .leading, spacing: 8) {
-                Text("API Endpoint")
-                    .font(.headline)
-                TextField("https://your-api.workers.dev", text: $userPreferences.apiEndpoint)
-                    .textFieldStyle(RoundedBorderTextFieldStyle())
-                Text("Your QuickCapture API endpoint")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-            }
-            
             Spacer()
         }
         .padding(20)
