@@ -98,13 +98,18 @@ export default {
   
 		// Generate AI Summary if requested
 		if (aiSummary) {
-		  const summaryText = await generateSummary(
+		  let summaryText = await generateSummary(
 			env,
 			url,
 			title,
 			summaryLength
 		  );
 		  
+		  // If no content summary, try title-based summary for paywalled content
+		  if (!summaryText) {
+			summaryText = await generateTitleBasedSummary(env, title, url, summaryLength);
+		  }
+
 		  if (summaryText) {
 			const bullets = summaryText.split('\n').filter(line => line.trim());
 			summaryHTML = `
@@ -119,7 +124,7 @@ export default {
 			summaryHTML = `
 			  <div style="margin: 20px 0;">
 				<h2 style="font-size: 18px; font-weight: bold; color: #000; margin-bottom: 12px;">Summary:</h2>
-				<p style="color: #666; font-style: italic;">Article content was behind a paywall - no summary available.</p>
+				<p style="color: #666; font-style: italic;">Summary could not be generated for this article.</p>
 			  </div>
 			`;
 		  }
