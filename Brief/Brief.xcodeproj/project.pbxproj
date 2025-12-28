@@ -91,13 +91,10 @@
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				"/Localized: Resources/Main.html",
-				APIService.swift,
 				Assets.xcassets,
-				ContentView.swift,
 				Resources/Icon.png,
 				Resources/Script.js,
 				Resources/Style.css,
-				UserPreferences.swift,
 				ViewController.swift,
 			);
 			target = 81100F512E4EB82800512776 /* Brief (macOS) */;

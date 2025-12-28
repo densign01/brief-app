@@ -112,11 +112,15 @@ struct ContentView: View {
                     Spacer()
                     
                     if userPreferences.aiSummaryEnabled {
+                        Text("Length:")
+                            .font(.subheadline)
+                            .fixedSize()
                         Picker("Length", selection: $userPreferences.summaryLength) {
                             Text("Short").tag("short")
                             Text("Long").tag("long")
                         }
                         .pickerStyle(SegmentedPickerStyle())
+                        .labelsHidden()
                         .frame(width: 120)
                     }
                 }
