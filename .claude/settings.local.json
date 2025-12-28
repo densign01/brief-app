@@ -50,7 +50,10 @@
       "Bash(git fetch:*)",
       "Bash(git branch:*)",
       "Bash(git reset:*)",
-      "Bash(du:*)"
+      "Bash(du:*)",
+      "Skill(commit)",
+      "Bash(ls:*)",
+      "Bash(cat:*)"
     ],
     "deny": []
   }

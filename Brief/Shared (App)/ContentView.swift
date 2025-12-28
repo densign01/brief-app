@@ -1,4 +1,9 @@
 import SwiftUI
+#if os(iOS)
+import UIKit
+#elseif os(macOS)
+import AppKit
+#endif
 
 struct ContentView: View {
     @EnvironmentObject var userPreferences: UserPreferences
@@ -53,6 +58,7 @@ struct ContentView: View {
                     }
                     .disabled(url.isEmpty || isLoading)
                     
+                    #if os(macOS)
                     Button("Paste from Clipboard") {
                         if let clipboardString = NSPasteboard.general.string(forType: .string) {
                             url = clipboardString
@@ -60,6 +66,15 @@ struct ContentView: View {
                         }
                     }
                     .disabled(isLoading)
+                    #else
+                    Button("Paste from Clipboard") {
+                        if let clipboardString = UIPasteboard.general.string {
+                            url = clipboardString
+                            analyzeURL()
+                        }
+                    }
+                    .disabled(isLoading)
+                    #endif
                 }
             }
             
@@ -130,7 +145,9 @@ struct ContentView: View {
             Spacer()
         }
         .padding(20)
+        #if os(macOS)
         .frame(width: 500, height: 600)
+        #endif
         .alert("Brief", isPresented: $showingAlert) {
             Button("OK") { }
         } message: {
@@ -313,7 +330,9 @@ struct SettingsView: View {
             Spacer()
         }
         .padding(20)
+        #if os(macOS)
         .frame(width: 400, height: 300)
+        #endif
     }
 }
 
