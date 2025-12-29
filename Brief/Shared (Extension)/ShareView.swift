@@ -62,7 +62,29 @@ struct ShareView: View {
         }
         #if os(iOS)
         .background(Color(.systemBackground))
+        #else
+        .onExitCommand {
+            onCancel()
+        }
+        .background(
+            Button("") {
+                performSend()
+            }
+            .keyboardShortcut(.return, modifiers: .command)
+            .hidden()
+        )
         #endif
+    }
+    
+    private func performSend() {
+        guard !isLoading else { return }
+        isLoading = true
+        errorMessage = nil
+        onSend(
+            context.isEmpty ? nil : context,
+            aiSummaryEnabled,
+            summaryLength
+        )
     }
     
     // MARK: - Header
@@ -221,42 +243,42 @@ struct ShareView: View {
     
     // MARK: - Send Button
     private var sendButtonSection: some View {
-        Button(action: {
-            isLoading = true
-            errorMessage = nil
-            onSend(
-                context.isEmpty ? nil : context,
-                aiSummaryEnabled,
-                summaryLength
-            )
-        }) {
-            HStack(spacing: 10) {
-                if isLoading {
-                    ProgressView()
-                        .progressViewStyle(CircularProgressViewStyle(tint: .white))
-                        .scaleEffect(0.85)
+        VStack(spacing: 8) {
+            Button(action: performSend) {
+                HStack(spacing: 10) {
+                    if isLoading {
+                        ProgressView()
+                            .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                            .scaleEffect(0.85)
+                    }
+                    Text(isLoading ? "Sending..." : "Send to Email")
+                        .fontWeight(.semibold)
+                    if !isLoading {
+                        Image(systemName: "paperplane.fill")
+                            .font(.caption)
+                    }
                 }
-                Text(isLoading ? "Sending..." : "Send to Email")
-                    .fontWeight(.semibold)
-                if !isLoading {
-                    Image(systemName: "paperplane.fill")
-                        .font(.caption)
-                }
-            }
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, 14)
-            .background(
-                LinearGradient(
-                    colors: isLoading ? [.gray.opacity(0.4), .gray.opacity(0.3)] : [.briefPrimary, .briefSecondary],
-                    startPoint: .leading,
-                    endPoint: .trailing
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 14)
+                .background(
+                    LinearGradient(
+                        colors: isLoading ? [.gray.opacity(0.4), .gray.opacity(0.3)] : [.briefPrimary, .briefSecondary],
+                        startPoint: .leading,
+                        endPoint: .trailing
+                    )
                 )
-            )
-            .foregroundColor(.white)
-            .cornerRadius(12)
+                .foregroundColor(.white)
+                .cornerRadius(12)
+            }
+            .buttonStyle(PlainButtonStyle())
+            .disabled(isLoading)
+            
+            #if os(macOS)
+            Text("⌘ Return to send")
+                .font(.caption2)
+                .foregroundColor(.secondary)
+            #endif
         }
-        .buttonStyle(PlainButtonStyle())
-        .disabled(isLoading)
         .padding(20)
     }
 
