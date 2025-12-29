@@ -32,27 +32,54 @@ export default {
 				});
 			}
 
-			// If title and site aren't provided, extract them from the URL
-			if (!title || !site) {
-				try {
-					const urlObj = new URL(url);
-					site = site || urlObj.hostname;
+			// Track if this is a tweet for special handling
+			let tweetContent = null;
 
-					// Special handling for X.com/Twitter (returns "JavaScript is not available")
-					if (urlObj.hostname === 'x.com' || urlObj.hostname === 'twitter.com' ||
-						urlObj.hostname === 'www.x.com' || urlObj.hostname === 'www.twitter.com') {
-						// Extract username from X URL pattern: /username/status/id
-						const pathParts = urlObj.pathname.split('/').filter(p => p);
-						if (pathParts.length >= 1) {
-							const username = pathParts[0];
-							title = title || `Post by @${username} on X`;
-							site = 'X';
-						} else {
-							title = title || 'Post on X';
-							site = 'X';
-						}
-					} else if (!title) {
-						// Fetch the page to extract title if not provided
+			// Parse the URL to check hostname
+			let urlObj;
+			try {
+				urlObj = new URL(url);
+			} catch (error) {
+				return new Response(JSON.stringify({
+					error: 'Invalid URL provided'
+				}), {
+					status: 400,
+					headers: {
+						'Content-Type': 'application/json',
+						'Access-Control-Allow-Origin': '*'
+					}
+				});
+			}
+
+			// Always check for X/Twitter URLs first - fetch actual tweet content via oEmbed
+			const isTwitterUrl = urlObj.hostname === 'x.com' || urlObj.hostname === 'twitter.com' ||
+				urlObj.hostname === 'www.x.com' || urlObj.hostname === 'www.twitter.com';
+
+			if (isTwitterUrl) {
+				site = 'X';
+				tweetContent = await fetchTweetContent(url);
+
+				if (tweetContent && tweetContent.authorName) {
+					title = `Post by ${tweetContent.authorName} on X`;
+				} else {
+					// Fallback: Extract username from URL pattern: /username/status/id
+					const pathParts = urlObj.pathname.split('/').filter(p => p);
+					if (pathParts.length >= 1) {
+						const username = pathParts[0];
+						title = `Post by @${username} on X`;
+					} else {
+						title = 'Post on X';
+					}
+				}
+			}
+
+			// If title and site aren't provided (and not Twitter), extract them from the URL
+			if (!isTwitterUrl && (!title || !site)) {
+				site = site || urlObj.hostname;
+
+				if (!title) {
+					// Fetch the page to extract title if not provided
+					try {
 						const response = await fetch(url);
 						if (response.ok) {
 							const html = await response.text();
@@ -69,17 +96,10 @@ export default {
 						} else {
 							title = urlObj.hostname;
 						}
+					} catch (error) {
+						console.error('Error fetching page for title:', error);
+						title = urlObj.hostname;
 					}
-				} catch (error) {
-					return new Response(JSON.stringify({
-						error: 'Invalid URL provided'
-					}), {
-						status: 400,
-						headers: {
-							'Content-Type': 'application/json',
-							'Access-Control-Allow-Origin': '*'
-						}
-					});
 				}
 			}
 
@@ -105,52 +125,70 @@ export default {
 			let summaryHTML = '';
 			let parsedContent = { author: '', date: '' };
 
-			// Parse content from the website
-			try {
-				const articleResponse = await fetch(url);
-				const html = await articleResponse.text();
-				parsedContent = parseArticleMetadata(html);
-			} catch (error) {
-				console.error('Error parsing article content:', error);
-			}
+			// For tweets, use the tweet content; for articles, parse metadata and generate summary
+			if (tweetContent && tweetContent.tweetText) {
+				// Format tweet content for email - no AI summary needed
+				const tweetTextFormatted = tweetContent.tweetText
+					.split('\n')
+					.map(line => line.trim())
+					.filter(line => line)
+					.join('<br>');
 
-			// Generate AI Summary if requested
-			if (aiSummary) {
-				let summaryText = await generateSummary(
-					env,
-					url,
-					title,
-					summaryLength
-				);
-
-				let isTitleBased = false;
-
-				// If no content summary, try title-based summary for paywalled content
-				if (!summaryText) {
-					summaryText = await generateTitleBasedSummary(env, title, url, summaryLength);
-					isTitleBased = true;
+				summaryHTML = `
+			  <div style="margin: 20px 0; padding: 16px 20px; background: #f7f9fa; border-left: 4px solid #1da1f2; border-radius: 4px;">
+				<p style="font-size: 16px; line-height: 1.5; color: #14171a; margin: 0; white-space: pre-wrap;">${tweetTextFormatted}</p>
+				${tweetContent.authorName ? `<p style="margin-top: 12px; color: #657786; font-size: 14px;">— ${tweetContent.authorName}${tweetContent.authorHandle ? ` (@${tweetContent.authorHandle})` : ''}</p>` : ''}
+			  </div>
+			`;
+				// Don't set parsedContent.author - it's already shown in the tweet block
+			} else {
+				// Parse content from the website (non-tweet)
+				try {
+					const articleResponse = await fetch(url);
+					const html = await articleResponse.text();
+					parsedContent = parseArticleMetadata(html);
+				} catch (error) {
+					console.error('Error parsing article content:', error);
 				}
 
-				if (summaryText) {
-					const bullets = summaryText.split('\n').filter(line => line.trim());
-					const headerText = isTitleBased
-						? 'Summary (AI-generated from title - full article not accessible):'
-						: 'Summary (AI-generated):';
-					summaryHTML = `
-			  <div style="margin: 20px 0;">
-				<h2 style="font-size: 18px; font-weight: bold; color: #000; margin-bottom: 12px;">${headerText}</h2>
-				<ul style="margin: 0; padding-left: 20px;">
-				  ${bullets.map(bullet => `<li style="margin-bottom: 6px;">${markdownToHtml((bullet || '').replace(/^[•\-*]\s*/, ''))}</li>`).join('')}
-				</ul>
-			  </div>
-			`;
-				} else {
-					summaryHTML = `
-			  <div style="margin: 20px 0;">
-				<h2 style="font-size: 18px; font-weight: bold; color: #000; margin-bottom: 12px;">Summary:</h2>
-				<p style="color: #666; font-style: italic;">Summary could not be generated for this article.</p>
-			  </div>
-			`;
+				// Generate AI Summary if requested (for non-tweets only)
+				if (aiSummary) {
+					let summaryText = await generateSummary(
+						env,
+						url,
+						title,
+						summaryLength
+					);
+
+					let isTitleBased = false;
+
+					// If no content summary, try title-based summary for paywalled content
+					if (!summaryText) {
+						summaryText = await generateTitleBasedSummary(env, title, url, summaryLength);
+						isTitleBased = true;
+					}
+
+					if (summaryText) {
+						const bullets = summaryText.split('\n').filter(line => line.trim());
+						const headerText = isTitleBased
+							? 'Summary (AI-generated from title - full article not accessible):'
+							: 'Summary (AI-generated):';
+						summaryHTML = `
+				  <div style="margin: 20px 0;">
+					<h2 style="font-size: 18px; font-weight: bold; color: #000; margin-bottom: 12px;">${headerText}</h2>
+					<ul style="margin: 0; padding-left: 20px;">
+					  ${bullets.map(bullet => `<li style="margin-bottom: 6px;">${markdownToHtml((bullet || '').replace(/^[•\-*]\s*/, ''))}</li>`).join('')}
+					</ul>
+				  </div>
+				`;
+					} else {
+						summaryHTML = `
+				  <div style="margin: 20px 0;">
+					<h2 style="font-size: 18px; font-weight: bold; color: #000; margin-bottom: 12px;">Summary:</h2>
+					<p style="color: #666; font-style: italic;">Summary could not be generated for this article.</p>
+				  </div>
+				`;
+					}
 				}
 			}
 
@@ -420,6 +458,43 @@ function parseArticleMetadata(html) {
 	}
 
 	return { author, date };
+}
+
+async function fetchTweetContent(url) {
+	try {
+		const oembedUrl = `https://publish.twitter.com/oembed?url=${encodeURIComponent(url)}&omit_script=true`;
+		const response = await fetch(oembedUrl);
+
+		if (!response.ok) {
+			console.log(`oEmbed failed (${response.status}) for: ${url}`);
+			return null;
+		}
+
+		const data = await response.json();
+
+		// Extract tweet text from the HTML blockquote
+		// The html field contains: <blockquote class="twitter-tweet"><p>TWEET TEXT</p>— Author (@handle) <a href="...">Date</a></blockquote>
+		let tweetText = '';
+		const pMatch = data.html.match(/<p[^>]*>([\s\S]*?)<\/p>/i);
+		if (pMatch) {
+			// Clean up the tweet text - remove HTML tags but keep line breaks
+			tweetText = pMatch[1]
+				.replace(/<br\s*\/?>/gi, '\n')
+				.replace(/<a[^>]*>(.*?)<\/a>/gi, '$1')  // Keep link text
+				.replace(/<[^>]+>/g, '')  // Remove remaining HTML
+				.trim();
+		}
+
+		return {
+			authorName: data.author_name,
+			authorHandle: data.author_url ? data.author_url.split('/').pop() : null,
+			tweetText: tweetText,
+			html: data.html
+		};
+	} catch (error) {
+		console.error('Error fetching tweet via oEmbed:', error);
+		return null;
+	}
 }
 
 async function generateTitleBasedSummary(env, title, url, summaryLength) {

@@ -143,12 +143,21 @@ Streamline the Brief project and prepare iOS/macOS app for TestFlight submission
 - **Fix:** Switched from AI SDK to direct Gemini 2.0 Flash API calls
 - **Fix:** Simplified paywall detection to content length only (< 500 chars)
 - **Fix:** Added markdown-to-HTML conversion for email formatting
-- Commit: pending
+- Commit: `8c36103`
 
-### Feature: Restore AI Summary Toggle in Share Sheet
-- AI summary toggle was removed to make share sheet compact
-- Consider adding it back as a small inline toggle
-- Currently defaults to user's saved preference (works, just not visible)
+### ✅ FIXED: Restore AI Summary Toggle in Share Sheet (2025-12-29)
+- Toggle and length picker were implemented but not rendered
+- **Fix:** Added `aiSummarySection` to ShareView body
+- Commit: pending user build verification
+
+### ✅ ADDED: Tweet Content Extraction via oEmbed (2025-12-29)
+- X/Twitter shares were showing AI-generated guesses instead of actual tweet text
+- **Fix:** Added `fetchTweetContent()` using Twitter's free oEmbed API
+- Extracts: author name, handle, actual tweet text
+- Display: Tweet styled with Twitter-blue left border, proper attribution
+- Skips AI summary for tweets (actual content is better)
+- Detection now runs unconditionally (not just when title is missing)
+- Deployed to Cloudflare Workers
 
 ### Feature: Links Sent History
 - Add ability to see previously sent links
@@ -166,6 +175,8 @@ Streamline the Brief project and prepare iOS/macOS app for TestFlight submission
 - Compare cost, complexity, and feature tradeoffs
 
 ## Recent Commits
+- (pending) - Add tweet content extraction via Twitter oEmbed API
+- `8c36103` - Fix AI summary generation with direct Gemini API
 - `9126024` - Switch AI provider from OpenAI to Gemini 2.5 Flash
 - `1faa623` - Add ⌘+Return keyboard shortcut for macOS share extension
 - `2f0388a` - Fix macOS Safari URL extraction - add multiple fallback methods
