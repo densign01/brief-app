@@ -13,6 +13,7 @@ Streamline the Brief project and prepare iOS/macOS app for TestFlight submission
 - App Group: `group.com.danielensign.Brief`
 - Bundle ID: `com.danielensign.Brief`
 - Deployment targets: iOS 17.0, macOS 14.0
+- UI Theme: Purple/indigo gradient (#6346E0 → #9355E9)
 
 ## State
 
@@ -47,6 +48,16 @@ Streamline the Brief project and prepare iOS/macOS app for TestFlight submission
 - [x] Verify share extension works ✓
 - [x] Verify sending from main app works ✓
 
+### Phase 5: Polish & UX Improvements [COMPLETE - 2024-12-28]
+- [x] New app icon (purple/indigo gradient with document + AI sparkle)
+- [x] Complete UI redesign with matching purple/indigo theme
+- [x] Fix X.com/Twitter URLs showing "JavaScript is not available"
+- [x] Label title-based summaries clearly ("AI-generated from title")
+- [x] Fix macOS Safari share extension URL extraction
+- [x] Add ⌘+Return keyboard shortcut for macOS share extension
+- [x] Add Escape to cancel on macOS
+- [x] Commit: `1faa623`
+
 ## Status: ✅ READY FOR TESTING
 
 ## Open Questions
@@ -57,6 +68,7 @@ Streamline the Brief project and prepare iOS/macOS app for TestFlight submission
 - `Brief/Brief.xcodeproj` - Main Xcode project
 - `Brief/Shared (App)/ContentView.swift` - Main app UI
 - `Brief/Shared (Extension)/ShareView.swift` - Share extension UI
+- `brief-api/src/index.js` - Cloudflare Workers API
 
 ## Backlog
 
@@ -78,18 +90,41 @@ Streamline the Brief project and prepare iOS/macOS app for TestFlight submission
 ### ✅ FIXED: Paywall Bypass for AI Summaries  
 - Paywalled content (e.g., NYT) returns "Article content was behind a paywall - no summary available"
 - **Fix:** Now uses generateTitleBasedSummary() to create AI-inferred summary from title
+- **Enhancement:** Summaries now labeled "AI-generated from title - full article not accessible"
 - Deployed to Cloudflare Workers
-- Commit: `500c662`
+- Commit: `500c662`, `b226e67`
 
-### Task: New App Icon Design
-- Current icon needs refresh
-- Generate several new icon options to choose from
-- Should convey "quick capture", "reading", "email", or "summary" concepts
+### ✅ FIXED: New App Icon Design
+- Created purple/indigo gradient icon with document + AI sparkle
+- Matches new UI theme
+- All sizes generated (16-1024px)
+- Commit: `8fa2eb7`
 
-### Task: UI Cleanup
-- Polish the main app and share extension UI
-- Improve visual design and user experience
-- Make it feel more premium/polished
+### ✅ FIXED: UI Cleanup
+- Complete redesign with purple/indigo theme
+- Card-based layout with shadows
+- Gradient accent buttons
+- Better section organization with labels and icons
+- Setup prompt for new users
+- Polished settings view
+- Commit: `b226e67`
+
+### ✅ FIXED: X.com/Twitter URL Titles
+- X/Twitter returned "JavaScript is not available" as title
+- **Fix:** Extract @username from URL, display as "Post by @username on X"
+- Filter out other bad titles from JS-heavy sites
+- Commit: `b226e67`
+
+### ✅ FIXED: macOS Safari Share Extension URL Not Extracted
+- Share extension was sending empty URL from Safari
+- **Fix:** Added multiple fallback extraction methods (userInfo, attributedContentText, fileURL type)
+- Commit: `2f0388a`
+
+### ✅ ADDED: Keyboard Shortcuts for macOS
+- ⌘+Return to send
+- Escape to cancel
+- Hint text showing keyboard shortcut
+- Commit: `1faa623`
 
 ### Feature: Links Sent History
 - Add ability to see previously sent links
@@ -107,6 +142,13 @@ Streamline the Brief project and prepare iOS/macOS app for TestFlight submission
 - Compare cost, complexity, and feature tradeoffs
 
 ## Recent Commits
+- `1faa623` - Add ⌘+Return keyboard shortcut for macOS share extension
+- `2f0388a` - Fix macOS Safari URL extraction - add multiple fallback methods
+- `96f0c05` - Add detailed API error logging to macOS share extension
+- `b226e67` - UI redesign: Purple/indigo theme with better visual hierarchy
+- `8fa2eb7` - New app icon: Purple/indigo gradient with document and AI sparkle
+- `1bb446d` - Update ledger: mark share visibility and paywall fixes complete
+- `500c662` - Fix share extension visibility and enable paywall bypass
 - `64fc202` - Fix: Hide API endpoint from settings, add title fetching for share extension
 - App Groups capability enabled in Xcode (not in git - Xcode project change)
 - `783991b` - Add macOS Info.plist with app category for TestFlight
