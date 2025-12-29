@@ -1,6 +1,3 @@
-import { generateText } from 'ai';
-import { createGoogleGenerativeAI } from '@ai-sdk/google';
-
 export default {
 	async fetch(request, env, ctx) {
 		// Handle CORS
@@ -143,7 +140,7 @@ export default {
 			  <div style="margin: 20px 0;">
 				<h2 style="font-size: 18px; font-weight: bold; color: #000; margin-bottom: 12px;">${headerText}</h2>
 				<ul style="margin: 0; padding-left: 20px;">
-				  ${bullets.map(bullet => `<li style="margin-bottom: 6px;">${(bullet || '').replace(/^[•\-*]\s*/, '')}</li>`).join('')}
+				  ${bullets.map(bullet => `<li style="margin-bottom: 6px;">${markdownToHtml((bullet || '').replace(/^[•\-*]\s*/, ''))}</li>`).join('')}
 				</ul>
 			  </div>
 			`;
@@ -235,19 +232,7 @@ async function generateSummary(env, url, title, summaryLength) {
 
 		const html = await articleResponse.text();
 
-		// Check if content looks like a paywall or error page
-		const lowercaseHtml = html.toLowerCase();
-		const paywallIndicators = [
-			'paywall', 'subscribe', 'subscription required', 'premium content',
-			'sign in', 'login required', 'access denied', 'error 520',
-			'cloudflare', 'blocked', 'forbidden'
-		];
-
-		const hasPaywallIndicators = paywallIndicators.some(indicator =>
-			lowercaseHtml.includes(indicator)
-		);
-
-		// Basic HTML stripping (you can enhance this)
+		// Basic HTML stripping
 		const textContent = html
 			.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
 			.replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, '')
@@ -255,9 +240,9 @@ async function generateSummary(env, url, title, summaryLength) {
 			.replace(/\s+/g, ' ')
 			.substring(0, 10000); // Limit to first 10k chars
 
-		// If content is too short or has paywall indicators, return null (no summary)
-		if (textContent.length < 200 || hasPaywallIndicators) {
-			console.log('Content appears to be paywalled or insufficient, no summary available');
+		// Check if content is too short (likely paywalled or error page)
+		if (textContent.length < 500) {
+			console.log('Content too short, likely paywalled or error page');
 			return null;
 		}
 
@@ -312,7 +297,7 @@ FORMAT:
 - 6 bullets total
 - 2-3 sentences each
 - 30-50 words per bullet
-- Use "–" to separate the topic from details (e.g., "Topic – Details here")
+- Plain text only. No markdown, no **bold**, no special formatting.
 - Maintain logical flow from core event to implications
 
 Article Title: ${title}
@@ -320,27 +305,49 @@ Article URL: ${url}
 Content: ${textContent}
 	  `;
 
-		// Use Google Gemini via AI SDK
+		// Use Google Gemini via direct API
 		if (!env.GOOGLE_API_KEY) {
 			throw new Error('Missing GOOGLE_API_KEY');
 		}
 
-		const google = createGoogleGenerativeAI({
-			apiKey: env.GOOGLE_API_KEY,
-		});
+		const response = await fetch(
+			`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent`,
+			{
+				method: 'POST',
+				headers: {
+					'x-goog-api-key': env.GOOGLE_API_KEY,
+					'Content-Type': 'application/json',
+				},
+				body: JSON.stringify({
+					contents: [{ parts: [{ text: prompt }] }],
+					generationConfig: {
+						maxOutputTokens: 500,
+					},
+				}),
+			}
+		);
 
-		const { text } = await generateText({
-			model: google('gemini-2.5-flash'),
-			prompt,
-			maxTokens: 500,
-		});
+		if (!response.ok) {
+			const error = await response.text();
+			console.error('Gemini API error:', error);
+			throw new Error(`Gemini API error: ${response.status}`);
+		}
 
+		const result = await response.json();
+		const text = result.candidates?.[0]?.content?.parts?.[0]?.text;
 		return text;
 
 	} catch (error) {
 		console.error('Summary generation error:', error);
 		return null;
 	}
+}
+
+function markdownToHtml(text) {
+	return text
+		.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')  // **bold**
+		.replace(/\*(.+?)\*/g, '<em>$1</em>')              // *italic*
+		.replace(/`(.+?)`/g, '<code>$1</code>');           // `code`
 }
 
 function getWebsiteName(site) {
@@ -476,16 +483,31 @@ URL: ${url}
 			throw new Error('Missing GOOGLE_API_KEY');
 		}
 
-		const google = createGoogleGenerativeAI({
-			apiKey: env.GOOGLE_API_KEY,
-		});
+		const response = await fetch(
+			`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent`,
+			{
+				method: 'POST',
+				headers: {
+					'x-goog-api-key': env.GOOGLE_API_KEY,
+					'Content-Type': 'application/json',
+				},
+				body: JSON.stringify({
+					contents: [{ parts: [{ text: prompt }] }],
+					generationConfig: {
+						maxOutputTokens: 300,
+					},
+				}),
+			}
+		);
 
-		const { text } = await generateText({
-			model: google('gemini-2.5-flash'),
-			prompt,
-			maxTokens: 300,
-		});
+		if (!response.ok) {
+			const error = await response.text();
+			console.error('Gemini API error (title-based):', error);
+			throw new Error(`Gemini API error: ${response.status}`);
+		}
 
+		const result = await response.json();
+		const text = result.candidates?.[0]?.content?.parts?.[0]?.text;
 		return text;
 
 	} catch (error) {

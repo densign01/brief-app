@@ -137,11 +137,13 @@ Streamline the Brief project and prepare iOS/macOS app for TestFlight submission
 - Can remove `OPENAI_API_KEY`, `OPENAI_MODEL`, `ANTHROPIC_API_KEY` from Cloudflare
 - Commit: `9126024`
 
-### Bug: AI Summary Not Generating for Some Articles
-- WSJ article showed "Summary could not be generated"
-- Title-based fallback also failing
-- Need to debug Gemini API calls and error handling
-- Check if SDK v3.0.1 fix resolved the issue or if there's another problem
+### ✅ FIXED: AI Summary Not Generating (2025-12-29)
+- Root cause: AI SDK v5 incompatible with Gemini 2.5 (v3 spec not supported)
+- Secondary issue: False paywall detection ("subscribe" matching newsletter buttons)
+- **Fix:** Switched from AI SDK to direct Gemini 2.0 Flash API calls
+- **Fix:** Simplified paywall detection to content length only (< 500 chars)
+- **Fix:** Added markdown-to-HTML conversion for email formatting
+- Commit: pending
 
 ### Feature: Restore AI Summary Toggle in Share Sheet
 - AI summary toggle was removed to make share sheet compact
