@@ -70,20 +70,16 @@ Streamline the Brief project and prepare iOS/macOS app for TestFlight submission
 - **Fix:** Removed from UI, keeps hardcoded default
 - Commit: `64fc202`
 
-### Issue: Brief Not Visible in Share Sheet from Certain Apps
+### ✅ FIXED: Brief Not Visible in Share Sheet from Certain Apps
 - Brief doesn't appear in share sheet when sharing from NYT app (works from Safari/NYT.com)
-- Likely related to supported UTIs (Uniform Type Identifiers) in extension Info.plist
-- Some apps share different content types than Safari
-- Need to investigate what content types the NYT app shares and add support
+- **Fix:** Added NSExtensionActivationSupportsText and NSExtensionActivationSupportsAttachmentsWithMaxCount
+- Commit: `500c662`
 
-### Issue: Paywall Bypass for AI Summaries  
+### ✅ FIXED: Paywall Bypass for AI Summaries  
 - Paywalled content (e.g., NYT) returns "Article content was behind a paywall - no summary available"
-- Need alternative approach to get article content for summarization
-- Options to explore:
-  - Reader mode / article extraction services
-  - Archive.org / web cache
-  - Headless browser rendering
-  - User-provided content paste
+- **Fix:** Now uses generateTitleBasedSummary() to create AI-inferred summary from title
+- Deployed to Cloudflare Workers
+- Commit: `500c662`
 
 ### Task: New App Icon Design
 - Current icon needs refresh
