@@ -260,11 +260,16 @@ class ShareViewController: NSViewController {
             request.setValue("application/json", forHTTPHeaderField: "Content-Type")
             request.httpBody = try JSONSerialization.data(withJSONObject: requestBody)
 
-            let (_, response) = try await URLSession.shared.data(for: request)
+            let (data, response) = try await URLSession.shared.data(for: request)
 
-            if let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 {
-                await MainActor.run {
-                    self.extensionContext?.completeRequest(returningItems: nil, completionHandler: nil)
+            if let httpResponse = response as? HTTPURLResponse {
+                if httpResponse.statusCode == 200 {
+                    await MainActor.run {
+                        self.extensionContext?.completeRequest(returningItems: nil, completionHandler: nil)
+                    }
+                } else {
+                    let responseBody = String(data: data, encoding: .utf8) ?? "No response body"
+                    await showErrorOnMain("API Error (\(httpResponse.statusCode)): \(responseBody)")
                 }
             } else {
                 await showErrorOnMain("Failed to send article")
