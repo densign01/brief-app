@@ -33,16 +33,51 @@ class ShareViewController: NSViewController {
         let group = DispatchGroup()
 
         for item in extensionItems {
+            // Try to get URL from userInfo (Safari provides it here)
+            if let userInfo = item.userInfo,
+               let urlString = userInfo[NSExtensionItemAttributedContentTextKey] as? String,
+               urlString.hasPrefix("http") {
+                pageURL = urlString
+            }
+            
+            // Also check attributedContentText
+            if let attributedText = item.attributedContentText?.string,
+               attributedText.hasPrefix("http") {
+                if pageURL.isEmpty {
+                    pageURL = attributedText
+                }
+            }
+            
             guard let attachments = item.attachments else { continue }
 
             for attachment in attachments {
-                // Try URL
+                // Try URL type
                 if attachment.hasItemConformingToTypeIdentifier(UTType.url.identifier) {
                     group.enter()
                     attachment.loadItem(forTypeIdentifier: UTType.url.identifier, options: nil) { [weak self] (data, error) in
                         defer { group.leave() }
                         if let url = data as? URL {
-                            self?.pageURL = url.absoluteString
+                            if self?.pageURL.isEmpty == true {
+                                self?.pageURL = url.absoluteString
+                            }
+                        } else if let urlData = data as? Data,
+                                  let url = URL(dataRepresentation: urlData, relativeTo: nil) {
+                            if self?.pageURL.isEmpty == true {
+                                self?.pageURL = url.absoluteString
+                            }
+                        }
+                    }
+                }
+                
+                // Try fileURL type (Safari sometimes uses this)
+                if attachment.hasItemConformingToTypeIdentifier(UTType.fileURL.identifier) {
+                    group.enter()
+                    attachment.loadItem(forTypeIdentifier: UTType.fileURL.identifier, options: nil) { [weak self] (data, error) in
+                        defer { group.leave() }
+                        if let url = data as? URL, url.scheme == "http" || url.scheme == "https" {
+                            if self?.pageURL.isEmpty == true {
+                                self?.pageURL = url.absoluteString
+                            }
                         }
                     }
                 }
