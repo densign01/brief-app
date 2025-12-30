@@ -2,6 +2,25 @@ import Cocoa
 import SwiftUI
 import UniformTypeIdentifiers
 
+// MARK: - HTML Entity Decoding
+extension String {
+    /// Decodes HTML entities like &quot;, &#x201c;, &amp; etc.
+    var htmlDecoded: String {
+        guard let data = self.data(using: .utf8) else { return self }
+
+        let options: [NSAttributedString.DocumentReadingOptionKey: Any] = [
+            .documentType: NSAttributedString.DocumentType.html,
+            .characterEncoding: String.Encoding.utf8.rawValue
+        ]
+
+        guard let attributed = try? NSAttributedString(data: data, options: options, documentAttributes: nil) else {
+            return self
+        }
+
+        return attributed.string
+    }
+}
+
 class ShareViewController: NSViewController {
     private var pageURL: String = ""
     private var pageTitle: String = ""
@@ -93,7 +112,8 @@ class ShareViewController: NSViewController {
                                     self?.pageURL = text
                                 }
                             } else if self?.pageTitle.isEmpty == true {
-                                self?.pageTitle = text
+                                // Decode HTML entities (Instagram sends encoded text)
+                                self?.pageTitle = text.htmlDecoded
                             }
                         }
                     }
@@ -105,7 +125,7 @@ class ShareViewController: NSViewController {
                     attachment.loadItem(forTypeIdentifier: "public.url-name", options: nil) { [weak self] (data, error) in
                         defer { group.leave() }
                         if let title = data as? String {
-                            self?.pageTitle = title
+                            self?.pageTitle = title.htmlDecoded
                         }
                     }
                 }
@@ -136,13 +156,13 @@ class ShareViewController: NSViewController {
             
             // Try og:title first (most reliable for articles)
             if let ogTitle = extractMetaContent(from: html, property: "og:title") {
-                pageTitle = ogTitle
+                pageTitle = ogTitle.htmlDecoded
                 return
             }
-            
+
             // Try twitter:title
             if let twitterTitle = extractMetaContent(from: html, name: "twitter:title") {
-                pageTitle = twitterTitle
+                pageTitle = twitterTitle.htmlDecoded
                 return
             }
             
@@ -164,14 +184,14 @@ class ShareViewController: NSViewController {
                 }
                 
                 if !title.isEmpty {
-                    pageTitle = title
+                    pageTitle = title.htmlDecoded
                 }
             }
         } catch {
             // Silently fail - we'll just use "Shared Link" as fallback
         }
     }
-    
+
     private func extractMetaContent(from html: String, property: String) -> String? {
         let pattern = "<meta[^>]+property=[\"']\(property)[\"'][^>]+content=[\"']([^\"']+)[\"']"
         if let match = html.range(of: pattern, options: .regularExpression) {

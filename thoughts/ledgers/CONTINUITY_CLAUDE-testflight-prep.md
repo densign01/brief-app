@@ -1,4 +1,5 @@
 # Continuity Ledger: Brief TestFlight Prep
+Updated: 2025-12-30
 
 ## Goal
 Streamline the Brief project and prepare iOS/macOS app for TestFlight submission.
@@ -58,7 +59,17 @@ Streamline the Brief project and prepare iOS/macOS app for TestFlight submission
 - [x] Add Escape to cancel on macOS
 - [x] Commit: `1faa623`
 
-## Status: ✅ READY FOR TESTING
+## Status: ⏳ EXTERNAL BETA SUBMISSION IN PROGRESS
+
+### Phase 6: External TestFlight Beta [IN PROGRESS - 2025-12-29]
+- [x] Create external testing group ("Friends & Family")
+- [→] Submit build for Beta App Review
+- [ ] Await Beta App Review approval (24-48 hours)
+- [ ] Distribute public link or invite testers
+
+**Test Information Prepared:**
+- What to Test: Core sharing flow, AI summaries, X/Twitter links, keyboard shortcuts
+- License Agreement: Custom EULA provided (or use Apple's standard)
 
 ## Open Questions
 - [x] Are bundle IDs registered in Apple Developer portal? YES
@@ -149,6 +160,14 @@ Streamline the Brief project and prepare iOS/macOS app for TestFlight submission
 - Toggle and length picker were implemented but not rendered
 - **Fix:** Added `aiSummarySection` to ShareView body
 - Commit: pending user build verification
+
+### ✅ FIXED: Instagram Sharing HTML Entity Decoding (2025-12-30)
+- Instagram shares text with HTML-encoded entities (`&quot;`, `&#x201c;`, etc.)
+- Title displayed raw without decoding, showing garbage characters
+- **Fix:** Added `htmlDecoded` String extension using `NSAttributedString` HTML parser
+- Applied to both iOS and macOS share extensions
+- Decodes titles from: plain text, property list, og:title, twitter:title, `<title>` tag
+- Commit: pending
 
 ### ✅ ADDED: Tweet Content Extraction via oEmbed (2025-12-29)
 - X/Twitter shares were showing AI-generated guesses instead of actual tweet text
