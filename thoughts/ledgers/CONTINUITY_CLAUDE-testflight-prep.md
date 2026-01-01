@@ -59,7 +59,7 @@ Streamline the Brief project and prepare iOS/macOS app for TestFlight submission
 - [x] Add Escape to cancel on macOS
 - [x] Commit: `1faa623`
 
-## Status: ✅ TESTFLIGHT LIVE WITH EXTERNAL TESTERS
+## Status: 🚀 ONBOARDING READY FOR TESTFLIGHT
 
 ### Phase 6: External TestFlight Beta [COMPLETE - 2025-12-31]
 - [x] Create external testing group ("Friends & Family")
@@ -67,8 +67,21 @@ Streamline the Brief project and prepare iOS/macOS app for TestFlight submission
 - [x] Beta App Review approved
 - [x] Distribute to testers
 
+### Phase 7: Onboarding Flow [COMPLETE - 2025-12-31]
+- [x] Plan onboarding (3 steps: email, enable extension, share demo)
+- [x] Create `OnboardingView.swift` container with TabView (iOS) / custom nav (macOS)
+- [x] Create `OnboardingStepViews.swift` with EmailStepView, EnableExtensionStepView, ShareDemoStepView
+- [x] Add `hasCompletedOnboarding` to UserPreferences
+- [x] Update BriefApp.swift and AppDelegate.swift with conditional rendering
+- [x] Add animated share demo with Safari mock and share sheet mock
+- [x] Add deep link support (`brief://setup-complete`)
+- [x] Add external setup guide link
+- [x] Test in iOS simulator - SUCCESS
+- [x] Merge to main and push to GitHub
+- [ ] Build and upload new TestFlight
+
 **Test Information Prepared:**
-- What to Test: Core sharing flow, AI summaries, X/Twitter links, keyboard shortcuts
+- What to Test: Onboarding flow, core sharing, AI summaries, X/Twitter links, keyboard shortcuts
 - License Agreement: Custom EULA provided (or use Apple's standard)
 
 ## Open Questions
@@ -79,6 +92,8 @@ Streamline the Brief project and prepare iOS/macOS app for TestFlight submission
 ## Working Set
 - `Brief/Brief.xcodeproj` - Main Xcode project
 - `Brief/Shared (App)/ContentView.swift` - Main app UI
+- `Brief/Shared (App)/OnboardingView.swift` - Onboarding container
+- `Brief/Shared (App)/OnboardingStepViews.swift` - 3 onboarding step views
 - `Brief/Shared (Extension)/ShareView.swift` - Share extension UI
 - `brief-api/src/index.js` - Cloudflare Workers API
 
@@ -176,6 +191,15 @@ Streamline the Brief project and prepare iOS/macOS app for TestFlight submission
 - Updated API `from` address: `onboarding@resend.dev` → `brief@send-brief.com`
 - Deployed to Cloudflare Workers
 
+### ✅ ADDED: 3-Step Onboarding Flow (2025-12-31)
+- Step 1: Email entry with validation (saves to UserPreferences)
+- Step 2: Enable extension instructions with setup guide link
+- Step 3: Animated share demo showing Safari → Share → Brief → Email
+- Platform-specific: iOS uses swipe TabView, macOS uses button navigation
+- Realistic mocks: Safari browser, share sheet with app icons, loading spinner
+- Branch: `feature/onboarding-flow` merged to main
+- Commit: `b0393da`
+
 ### ✅ ADDED: Tweet Content Extraction via oEmbed (2025-12-29)
 - X/Twitter shares were showing AI-generated guesses instead of actual tweet text
 - **Fix:** Added `fetchTweetContent()` using Twitter's free oEmbed API
@@ -201,7 +225,11 @@ Streamline the Brief project and prepare iOS/macOS app for TestFlight submission
 - Compare cost, complexity, and feature tradeoffs
 
 ## Recent Commits
-- (pending) - Add tweet content extraction via Twitter oEmbed API
+- `6496040` - Merge onboarding flow into main
+- `056b0e9` - fix: use verified send-brief.com domain for email delivery
+- `b0393da` - feat: implement 3-step onboarding flow with realistic demo and setup guide
+- `d41d0ab` - Fix HTML entity decoding for Instagram shares
+- `cfe54f6` - Add tweet content extraction via Twitter oEmbed API
 - `8c36103` - Fix AI summary generation with direct Gemini API
 - `9126024` - Switch AI provider from OpenAI to Gemini 2.5 Flash
 - `1faa623` - Add ⌘+Return keyboard shortcut for macOS share extension
