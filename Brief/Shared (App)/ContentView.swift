@@ -105,7 +105,7 @@ struct ContentView: View {
                     .font(.title2)
                     .fontWeight(.bold)
                     .foregroundColor(.primary)
-                Text("AI-powered article summaries")
+                Text("AI-powered link summaries")
                     .font(.subheadline)
                     .foregroundColor(.secondary)
             }
@@ -132,7 +132,7 @@ struct ContentView: View {
                 Text("Set up your email")
                     .font(.headline)
                     .foregroundColor(.primary)
-                Text("Configure where to send your articles")
+                Text("Configure where to send your links")
                     .font(.caption)
                     .foregroundColor(.secondary)
             }
@@ -157,12 +157,12 @@ struct ContentView: View {
     // MARK: - URL Input Section
     private var urlInputSection: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Label("Article URL", systemImage: "link")
+            Label("URL", systemImage: "link")
                 .font(.headline)
                 .foregroundColor(.primary)
             
             HStack(spacing: 10) {
-                TextField("https://example.com/article", text: $url)
+                TextField("https://example.com", text: $url)
                     .textFieldStyle(PlainTextFieldStyle())
                     .padding(12)
                     .background(Color.gray.opacity(0.08))
@@ -199,7 +199,7 @@ struct ContentView: View {
     // MARK: - Title Display Section
     private var titleDisplaySection: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Label("Article Title", systemImage: "text.quote")
+            Label("Title", systemImage: "text.quote")
                 .font(.caption)
                 .foregroundColor(.secondary)
             
@@ -447,13 +447,13 @@ struct ContentView: View {
                 await MainActor.run {
                     isLoading = false
                     if success {
-                        alertMessage = "Article sent to \(userPreferences.email)"
+                        alertMessage = "Link sent to \(userPreferences.email)"
                         alertIsSuccess = true
                         url = ""
                         title = ""
                         context = ""
                     } else {
-                        alertMessage = "Failed to send article. Please try again."
+                        alertMessage = "Failed to send link. Please try again."
                         alertIsSuccess = false
                     }
                     showingAlert = true
@@ -508,7 +508,7 @@ struct SettingsView: View {
                             .background(Color.gray.opacity(0.08))
                             .cornerRadius(10)
                         
-                        Text("Articles will be sent to this address")
+                        Text("Links will be sent to this address")
                             .font(.caption)
                             .foregroundColor(.secondary)
                     }

@@ -126,7 +126,7 @@ struct ShareView: View {
     // MARK: - Article Info
     private var articleInfoSection: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Label("Article", systemImage: "link")
+            Label("Link", systemImage: "link")
                 .font(.caption)
                 .foregroundColor(.secondary)
             

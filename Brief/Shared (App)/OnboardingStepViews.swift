@@ -39,7 +39,7 @@ struct EmailStepView: View {
                     .font(.system(size: 32, weight: .bold, design: .rounded))
                     .foregroundColor(.primary)
                 
-                Text("AI-powered article summaries\ndelivered straight to your inbox")
+                Text("AI-powered link summaries\ndelivered straight to your inbox")
                     .font(.subheadline)
                     .multilineTextAlignment(.center)
                     .foregroundColor(.secondary)
@@ -229,7 +229,7 @@ struct ShareDemoStepView: View {
         
         var title: String {
             switch self {
-            case .browsing: return "Find an article"
+            case .browsing: return "Find a link"
             case .tapping: return "Tap Share"
             case .selecting: return "Select Brief"
             case .sending: return "AI Summarizing..."
@@ -522,7 +522,7 @@ struct ShareDemoStepView: View {
                             }
                     }
                     
-                    Text("Analyzing Article...")
+                    Text("Analyzing...")
                         .font(.headline)
                         .foregroundColor(.briefPrimary)
                 }
