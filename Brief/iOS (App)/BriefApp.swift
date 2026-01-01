@@ -13,7 +13,7 @@ struct BriefApp: App {
 
     var body: some Scene {
         WindowGroup {
-            if userPreferences.hasCompletedOnboarding {
+            if userPreferences.hasCompletedOnboarding || !userPreferences.email.isEmpty {
                 ContentView()
                     .environmentObject(userPreferences)
             } else {
