@@ -59,7 +59,7 @@ export default {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          from: 'Brief <onboarding@resend.dev>',
+          from: 'Brief <brief@send-brief.com>',
           to: [email],
           subject: `${prettySite(site)}: ${title}`,
           html: emailHTML,

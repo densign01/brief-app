@@ -225,7 +225,7 @@ export default {
 					'Content-Type': 'application/json'
 				},
 				body: JSON.stringify({
-					from: 'Brief <onboarding@resend.dev>', // Use your domain later
+					from: 'Brief <brief@send-brief.com>',
 					to: [email],
 					subject: `${getWebsiteName(site)}: ${title}`,
 					html: emailHTML
@@ -233,7 +233,9 @@ export default {
 			});
 
 			if (!emailResponse.ok) {
-				throw new Error('Failed to send email');
+				const resendError = await emailResponse.json();
+				console.error('Resend API error:', JSON.stringify(resendError));
+				throw new Error(resendError.message || 'Failed to send email');
 			}
 
 			return new Response(JSON.stringify({ success: true }), {
