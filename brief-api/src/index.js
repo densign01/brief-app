@@ -227,7 +227,7 @@ export default {
 				body: JSON.stringify({
 					from: 'Brief <brief@send-brief.com>',
 					to: [email],
-					subject: `${getWebsiteName(site)}: ${title}`,
+					subject: `${getWebsiteName(site)}: ${title.replace(/[\r\n]+/g, ' ').trim()}`,
 					html: emailHTML
 				})
 			});
