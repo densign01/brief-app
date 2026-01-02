@@ -250,7 +250,7 @@ class ShareViewController: UIViewController {
         Task {
             await performSend(
                 url: pageURL,
-                title: pageTitle.isEmpty ? "Shared Link" : pageTitle,
+                title: pageTitle,
                 email: email,
                 apiEndpoint: apiEndpoint,
                 context: context,
