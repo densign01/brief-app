@@ -1,8 +1,9 @@
-# Continuity Ledger: Brief TestFlight Prep
-Updated: 2026-01-15
+# Continuity Ledger: Brief App Store Release
+Updated: 2026-01-17T19:50:00Z
 
 ## Goal
-Streamline the Brief project and prepare iOS/macOS app for TestFlight submission.
+~~Streamline the Brief project and prepare iOS/macOS app for TestFlight submission.~~
+**ACHIEVED:** App submitted to App Store Review on 2026-01-17.
 
 ## Constraints
 - Keep only: `Brief/` (iOS+macOS app), `brief-api/`, `brief-web/`
@@ -113,35 +114,34 @@ Streamline the Brief project and prepare iOS/macOS app for TestFlight submission
 - [x] Archive macOS build
 - [x] Upload to App Store Connect
 
-### Phase 10: App Store Release [IN PROGRESS - 2026-01-15]
+### Phase 10: App Store Release [COMPLETE - 2026-01-17]
 **Decision:** Launch as FREE app, add freemium later based on usage data
 
-**App Store Listing (Draft):**
+**App Store Listing:**
 - **App Name:** Brief
 - **Subtitle:** Send links to your inbox
 - **Keywords:** read later,save articles,email,summary,AI,bookmark,links,share extension
-- **Description:**
-  > Brief makes it easy to save articles, links, and posts for later — delivered straight to your email.
-  >
-  > Share any link from Safari, X, LinkedIn, Instagram, or any app. Brief sends it to your inbox with an AI-generated summary so you can decide what's worth reading.
-  >
-  > **How it works:**
-  > 1. Tap Share on any link
-  > 2. Select Brief
-  > 3. Get an email with the link and summary
-  >
-  > No account needed. Just enter your email once and start saving.
+- **Support URL:** https://send-brief.com/support.html
+- **Privacy URL:** https://send-brief.com/privacy.html
 
 **Checklist:**
 - [x] Draft App Store listing copy
-- [ ] Review and finalize copy
-- [ ] Create iPhone 6.7" screenshots
-- [ ] Create iPhone 6.5" screenshots
-- [ ] Create Mac screenshots
-- [ ] Complete age rating questionnaire
-- [ ] Set price to Free
-- [ ] Add support URL
-- [ ] Submit for App Review
+- [x] Review and finalize copy
+- [x] Create iPhone screenshots
+- [x] Create iPad screenshots (scaled from iPhone)
+- [x] Complete age rating questionnaire
+- [x] Complete App Privacy section
+- [x] Set price to Free
+- [x] Add support URL
+- [x] Submit for App Review ✅
+
+**Submitted:** 2026-01-17
+**Status:** Waiting for App Review
+
+**Infrastructure Setup:**
+- [x] Register send-brief.com domain (Cloudflare)
+- [x] Deploy docs to Cloudflare Pages (send-brief.com)
+- [x] Landing page, support page, privacy policy, setup guide live
 
 **Future: Freemium Model (post-launch)**
 - Free tier: 10 links/month
@@ -310,6 +310,8 @@ Streamline the Brief project and prepare iOS/macOS app for TestFlight submission
 - Compare cost, complexity, and feature tradeoffs
 
 ## Recent Commits
+- `0de668e` - Prepare docs for send-brief.com hosting
+- `039f2e8` - Add support page, update privacy policy for Gemini
 - `44e768d` - Let API extract page titles when app extraction fails
 - `21fabe2` - Skip onboarding when email is already saved
 - `26d366a` - Add HTML entity decoding on API side for cleaner email titles
