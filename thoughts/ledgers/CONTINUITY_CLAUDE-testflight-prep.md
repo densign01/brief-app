@@ -1,5 +1,5 @@
 # Continuity Ledger: Brief App Store Release
-Updated: 2026-01-17T19:50:00Z
+Updated: 2026-01-19T14:15:00-05:00
 
 ## Goal
 ~~Streamline the Brief project and prepare iOS/macOS app for TestFlight submission.~~
@@ -270,6 +270,13 @@ Updated: 2026-01-17T19:50:00Z
 - Applied to both iOS and macOS share extensions
 - Commit: `44e768d`
 
+### ✅ FIXED: Resend 422 Error - Email Subject Too Long (2026-01-19)
+- Instagram/social media posts were sending entire captions as email subject
+- Resend requires subjects under 2000 characters
+- **Fix:** Truncate email subjects to 150 characters max
+- Also set up Cloudflare Email Routing for `help@send-brief.com` → Gmail
+- Commit: `2875b4d`
+
 ### ✅ CHANGED: "Article" to "Link" Terminology (2025-01-01)
 - Changed all user-facing "article" text to "link" for broader content support
 - 13 text changes across 3 files (ContentView, OnboardingStepViews, ShareView)
@@ -310,6 +317,7 @@ Updated: 2026-01-17T19:50:00Z
 - Compare cost, complexity, and feature tradeoffs
 
 ## Recent Commits
+- `2875b4d` - Fix: Truncate email subjects to avoid Resend 2000 char limit
 - `0de668e` - Prepare docs for send-brief.com hosting
 - `039f2e8` - Add support page, update privacy policy for Gemini
 - `44e768d` - Let API extract page titles when app extraction fails
