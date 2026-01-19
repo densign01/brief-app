@@ -242,6 +242,14 @@ export default {
 		`;
 
 			// Send email using Resend
+			// Truncate subject to avoid Resend's 2000 char limit (keep it email-friendly at 150 chars)
+			const siteName = getWebsiteName(site);
+			const cleanTitle = title.replace(/[\r\n]+/g, ' ').trim();
+			const maxTitleLength = 150 - siteName.length - 2; // 2 for ": " separator
+			const truncatedTitle = cleanTitle.length > maxTitleLength
+				? cleanTitle.substring(0, maxTitleLength - 3) + '...'
+				: cleanTitle;
+
 			const emailResponse = await fetch('https://api.resend.com/emails', {
 				method: 'POST',
 				headers: {
@@ -251,7 +259,7 @@ export default {
 				body: JSON.stringify({
 					from: 'Brief <brief@send-brief.com>',
 					to: [email],
-					subject: `${getWebsiteName(site)}: ${title.replace(/[\r\n]+/g, ' ').trim()}`,
+					subject: `${siteName}: ${truncatedTitle}`,
 					html: emailHTML
 				})
 			});
