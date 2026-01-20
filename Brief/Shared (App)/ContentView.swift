@@ -11,6 +11,7 @@ extension Color {
     static let briefSecondary = Color(red: 0.576, green: 0.333, blue: 0.914) // #9355E9 - Purple
     static let briefAccent = Color(red: 0.663, green: 0.388, blue: 0.949) // #A963F2 - Light Purple
     static let briefBackground = Color(red: 0.976, green: 0.973, blue: 0.988) // #F9F8FC - Light lavender
+    static let briefSecondaryText = Color(red: 0.35, green: 0.35, blue: 0.4) // #595966 - Darker gray for accessibility
 }
 
 struct ContentView: View {
@@ -107,7 +108,7 @@ struct ContentView: View {
                     .foregroundColor(.primary)
                 Text("AI-powered link summaries")
                     .font(.subheadline)
-                    .foregroundColor(.secondary)
+                    .foregroundColor(.briefSecondaryText)
             }
             
             Spacer()
@@ -134,7 +135,7 @@ struct ContentView: View {
                     .foregroundColor(.primary)
                 Text("Configure where to send your links")
                     .font(.caption)
-                    .foregroundColor(.secondary)
+                    .foregroundColor(.briefSecondaryText)
             }
             
             Spacer()
@@ -201,7 +202,7 @@ struct ContentView: View {
         VStack(alignment: .leading, spacing: 8) {
             Label("Title", systemImage: "text.quote")
                 .font(.caption)
-                .foregroundColor(.secondary)
+                .foregroundColor(.briefSecondaryText)
             
             Text(title)
                 .font(.headline)
@@ -233,7 +234,7 @@ struct ContentView: View {
             
             Text("Optional - add context for yourself")
                 .font(.caption)
-                .foregroundColor(.secondary)
+                .foregroundColor(.briefSecondaryText)
             
             TextEditor(text: $context)
                 .frame(height: 70)
@@ -269,7 +270,7 @@ struct ContentView: View {
                 HStack(spacing: 12) {
                     Text("Length:")
                         .font(.subheadline)
-                        .foregroundColor(.secondary)
+                        .foregroundColor(.briefSecondaryText)
                     
                     Picker("", selection: $userPreferences.summaryLength) {
                         Text("Short").tag("short")
@@ -281,7 +282,7 @@ struct ContentView: View {
                 
                 Text("Powered by Gemini • Generates key bullet points")
                     .font(.caption)
-                    .foregroundColor(.secondary)
+                    .foregroundColor(.briefSecondaryText)
             }
         }
         .padding(14)
@@ -311,7 +312,7 @@ struct ContentView: View {
                     endPoint: .trailing
                 )
             )
-            .foregroundColor(.white)
+            .foregroundColor(canSend ? .white : .gray)
             .cornerRadius(14)
         }
         .buttonStyle(PlainButtonStyle())
@@ -330,7 +331,7 @@ struct ContentView: View {
             
             Text("Tip: Use the Share menu in Safari or other apps for faster capture")
                 .font(.caption)
-                .foregroundColor(.secondary)
+                .foregroundColor(.briefSecondaryText)
         }
         .padding(12)
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -510,7 +511,7 @@ struct SettingsView: View {
                         
                         Text("Links will be sent to this address")
                             .font(.caption)
-                            .foregroundColor(.secondary)
+                            .foregroundColor(.briefSecondaryText)
                     }
                     
                     Divider()
@@ -553,7 +554,7 @@ struct SettingsView: View {
                 .frame(width: 20)
             Text(text)
                 .font(.subheadline)
-                .foregroundColor(.secondary)
+                .foregroundColor(.briefSecondaryText)
         }
     }
 }
