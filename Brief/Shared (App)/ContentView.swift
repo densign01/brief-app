@@ -5,17 +5,14 @@ import UIKit
 import AppKit
 #endif
 
-// MARK: - Theme Colors
-extension Color {
-    static let briefPrimary = Color(red: 0.388, green: 0.275, blue: 0.878) // #6346E0 - Indigo
-    static let briefSecondary = Color(red: 0.576, green: 0.333, blue: 0.914) // #9355E9 - Purple
-    static let briefAccent = Color(red: 0.663, green: 0.388, blue: 0.949) // #A963F2 - Light Purple
-    static let briefBackground = Color(red: 0.976, green: 0.973, blue: 0.988) // #F9F8FC - Light lavender
-    static let briefSecondaryText = Color(red: 0.35, green: 0.35, blue: 0.4) // #595966 - Darker gray for accessibility
+// MARK: - URL Identifiable Extension
+extension URL: @retroactive Identifiable {
+    public var id: String { absoluteString }
 }
 
 struct ContentView: View {
     @EnvironmentObject var userPreferences: UserPreferences
+    @Environment(\.scenePhase) private var scenePhase
     @State private var url = ""
     @State private var title = ""
     @State private var context = ""
@@ -24,54 +21,34 @@ struct ContentView: View {
     @State private var alertMessage = ""
     @State private var showingSettings = false
     @State private var alertIsSuccess = false
-    
+    #if os(iOS)
+    @State private var selectedArticleURL: URL?
+    @State private var selectedPage = 0  // 0 = Send, 1 = History
+    #endif
+
     var body: some View {
+        #if os(iOS)
+        // iOS: Two-page swipe interface
         ZStack {
-            // Background
-            #if os(iOS)
             Color.briefBackground.ignoresSafeArea()
-            #else
-            Color.briefBackground
-            #endif
-            
-            ScrollView {
-                VStack(spacing: 24) {
-                    // Header
-                    headerSection
-                    
-                    // Setup prompt if needed
-                    if userPreferences.email.isEmpty {
-                        setupPrompt
-                    }
-                    
-                    // Main content
-                    VStack(spacing: 20) {
-                        urlInputSection
-                        
-                        if !title.isEmpty {
-                            titleDisplaySection
-                        }
-                        
-                        contextInputSection
-                        
-                        aiSummarySection
-                        
-                        sendButton
-                    }
-                    .padding(20)
-                    .background(Color.white)
-                    .cornerRadius(16)
-                    .shadow(color: Color.black.opacity(0.05), radius: 10, x: 0, y: 4)
-                    
-                    // Tip section
-                    tipSection
+
+            VStack(spacing: 0) {
+                // Shared header with page indicator
+                headerWithPageIndicator
+                    .padding(.horizontal, 20)
+                    .padding(.top, 20)
+
+                // Swipeable pages
+                TabView(selection: $selectedPage) {
+                    sendPage
+                        .tag(0)
+
+                    historyPage
+                        .tag(1)
                 }
-                .padding(20)
+                .tabViewStyle(.page(indexDisplayMode: .never))
             }
         }
-        #if os(macOS)
-        .frame(minWidth: 480, idealWidth: 520, maxWidth: 600, minHeight: 600, idealHeight: 700, maxHeight: 800)
-        #endif
         .alert(alertIsSuccess ? "Success" : "Brief", isPresented: $showingAlert) {
             Button("OK") { }
         } message: {
@@ -81,7 +58,175 @@ struct ContentView: View {
             SettingsView()
                 .environmentObject(userPreferences)
         }
+        .sheet(item: $selectedArticleURL) { url in
+            SafariView(url: url)
+                .ignoresSafeArea()
+        }
+        .onChange(of: scenePhase) { _, newPhase in
+            // Refresh history when returning to foreground to pick up
+            // any articles sent via Share Extension while backgrounded
+            if newPhase == .active {
+                userPreferences.refreshHistory()
+            }
+        }
+        #else
+        // macOS: Single page layout (no swiping)
+        ZStack {
+            Color.briefBackground
+
+            ScrollView {
+                VStack(spacing: 24) {
+                    headerSection
+
+                    if userPreferences.email.isEmpty {
+                        setupPrompt
+                    }
+
+                    VStack(spacing: 20) {
+                        urlInputSection
+
+                        if !title.isEmpty {
+                            titleDisplaySection
+                        }
+
+                        contextInputSection
+                        aiSummarySection
+                        sendButton
+                    }
+                    .padding(20)
+                    .background(Color.white)
+                    .cornerRadius(16)
+                    .shadow(color: Color.black.opacity(0.05), radius: 10, x: 0, y: 4)
+
+                    tipSection
+                }
+                .padding(20)
+            }
+        }
+        .frame(minWidth: 480, idealWidth: 520, maxWidth: 600, minHeight: 600, idealHeight: 700, maxHeight: 800)
+        .alert(alertIsSuccess ? "Success" : "Brief", isPresented: $showingAlert) {
+            Button("OK") { }
+        } message: {
+            Text(alertMessage)
+        }
+        .sheet(isPresented: $showingSettings) {
+            SettingsView()
+                .environmentObject(userPreferences)
+        }
+        #endif
     }
+
+    // MARK: - iOS Page Views
+
+    #if os(iOS)
+    /// Header with page indicator dots
+    private var headerWithPageIndicator: some View {
+        VStack(spacing: 12) {
+            headerSection
+
+            // Page indicator dots
+            HStack(spacing: 8) {
+                Circle()
+                    .fill(selectedPage == 0 ? Color.briefPrimary : Color.gray.opacity(0.3))
+                    .frame(width: 8, height: 8)
+                Circle()
+                    .fill(selectedPage == 1 ? Color.briefPrimary : Color.gray.opacity(0.3))
+                    .frame(width: 8, height: 8)
+            }
+        }
+    }
+
+    /// Send page content
+    private var sendPage: some View {
+        ScrollView {
+            VStack(spacing: 24) {
+                if userPreferences.email.isEmpty {
+                    setupPrompt
+                }
+
+                VStack(spacing: 20) {
+                    urlInputSection
+
+                    if !title.isEmpty {
+                        titleDisplaySection
+                    }
+
+                    contextInputSection
+                    aiSummarySection
+                    sendButton
+                }
+                .padding(20)
+                .background(Color.white)
+                .cornerRadius(16)
+                .shadow(color: Color.black.opacity(0.05), radius: 10, x: 0, y: 4)
+
+                tipSection
+            }
+            .padding(20)
+        }
+    }
+
+    /// History page content
+    private var historyPage: some View {
+        ScrollView {
+            VStack(spacing: 16) {
+                // History header
+                HStack {
+                    Label("Recent", systemImage: "clock.arrow.circlepath")
+                        .font(.title2)
+                        .fontWeight(.bold)
+                        .foregroundColor(.primary)
+
+                    Spacer()
+
+                    Text("\(userPreferences.sentHistory.count) sent")
+                        .font(.subheadline)
+                        .foregroundColor(.briefSecondaryText)
+                }
+
+                if userPreferences.sentHistory.isEmpty {
+                    // Empty state
+                    VStack(spacing: 12) {
+                        Image(systemName: "tray")
+                            .font(.system(size: 48))
+                            .foregroundColor(.gray.opacity(0.4))
+                        Text("No links sent yet")
+                            .font(.headline)
+                            .foregroundColor(.briefSecondaryText)
+                        Text("Share a link from Safari to get started")
+                            .font(.caption)
+                            .foregroundColor(.gray)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 60)
+                } else {
+                    // History list
+                    VStack(spacing: 0) {
+                        ForEach(Array(userPreferences.sentHistory.enumerated()), id: \.element.id) { index, article in
+                            Button(action: {
+                                if let url = URL(string: article.url) {
+                                    selectedArticleURL = url
+                                }
+                            }) {
+                                historyRow(article: article)
+                            }
+                            .buttonStyle(PlainButtonStyle())
+
+                            if index < userPreferences.sentHistory.count - 1 {
+                                Divider()
+                                    .padding(.leading, 44)
+                            }
+                        }
+                    }
+                    .background(Color.white)
+                    .cornerRadius(12)
+                    .shadow(color: Color.black.opacity(0.05), radius: 8, x: 0, y: 2)
+                }
+            }
+            .padding(20)
+        }
+    }
+    #endif
     
     // MARK: - Header Section
     private var headerSection: some View {
@@ -328,16 +473,65 @@ struct ContentView: View {
         HStack(spacing: 10) {
             Image(systemName: "lightbulb.fill")
                 .foregroundColor(.briefAccent)
-            
+
+            #if os(iOS)
+            Text("Swipe left for history • Use Share menu for faster capture")
+                .font(.caption)
+                .foregroundColor(.briefSecondaryText)
+            #else
             Text("Tip: Use the Share menu in Safari or other apps for faster capture")
                 .font(.caption)
                 .foregroundColor(.briefSecondaryText)
+            #endif
         }
         .padding(12)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(Color.white.opacity(0.8))
         .cornerRadius(10)
     }
+
+    // MARK: - History Row (shared)
+    #if os(iOS)
+    private func historyRow(article: SentArticle) -> some View {
+        HStack(spacing: 12) {
+            Image(systemName: "doc.text.fill")
+                .font(.title3)
+                .foregroundColor(.briefPrimary)
+                .frame(width: 32)
+
+            VStack(alignment: .leading, spacing: 4) {
+                Text(article.title)
+                    .font(.subheadline)
+                    .fontWeight(.medium)
+                    .foregroundColor(.primary)
+                    .lineLimit(2)
+
+                HStack(spacing: 6) {
+                    Text(article.site)
+                        .font(.caption)
+                        .foregroundColor(.briefSecondaryText)
+
+                    Text("•")
+                        .font(.caption)
+                        .foregroundColor(.briefSecondaryText)
+
+                    Text(article.dateSent, style: .relative)
+                        .font(.caption)
+                        .foregroundColor(.briefSecondaryText)
+                }
+            }
+
+            Spacer()
+
+            Image(systemName: "chevron.right")
+                .font(.caption)
+                .foregroundColor(.gray)
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 12)
+        .contentShape(Rectangle())
+    }
+    #endif
     
     // MARK: - Actions
     private func pasteFromClipboard() {
@@ -448,6 +642,9 @@ struct ContentView: View {
                 await MainActor.run {
                     isLoading = false
                     if success {
+                        // Save to history
+                        userPreferences.addToHistory(url: url, title: title)
+
                         alertMessage = "Link sent to \(userPreferences.email)"
                         alertIsSuccess = true
                         url = ""
