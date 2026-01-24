@@ -106,4 +106,16 @@ class UserPreferences: ObservableObject {
     func refreshHistory() {
         sentHistory = loadHistory()
     }
+
+    // MARK: - Reset All Data
+
+    /// Clears all user data and returns app to fresh state.
+    /// Used by "Reset Onboarding Flow" button in Settings.
+    func resetAll() {
+        hasCompletedOnboarding = false
+        email = ""
+        sentHistory = []
+        aiSummaryEnabled = false
+        summaryLength = "short"
+    }
 }

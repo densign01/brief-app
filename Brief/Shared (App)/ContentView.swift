@@ -672,7 +672,8 @@ struct ContentView: View {
 struct SettingsView: View {
     @EnvironmentObject var userPreferences: UserPreferences
     @Environment(\.dismiss) private var dismiss
-    
+    @State private var showResetConfirmation = false
+
     var body: some View {
         VStack(spacing: 0) {
             // Header
@@ -724,7 +725,7 @@ struct SettingsView: View {
                             aboutRow(icon: "lock.shield", text: "Email stored locally on device")
                             aboutRow(icon: "square.and.arrow.up", text: "Use Share menu for faster capture")
                             
-                            Button(action: { userPreferences.hasCompletedOnboarding = false }) {
+                            Button(action: { showResetConfirmation = true }) {
                                 aboutRow(icon: "arrow.counterclockwise", text: "Reset Onboarding Flow")
                                     .foregroundColor(.briefPrimary)
                             }
@@ -742,6 +743,18 @@ struct SettingsView: View {
         #if os(macOS)
         .frame(width: 400, height: 380)
         #endif
+        .confirmationDialog(
+            "Reset Brief?",
+            isPresented: $showResetConfirmation,
+            titleVisibility: .visible
+        ) {
+            Button("Reset", role: .destructive) {
+                userPreferences.resetAll()
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("This will clear your email, send history, and settings, then restart onboarding.\n\nTo just change your email, use the Email Address field in Settings instead.")
+        }
     }
     
     private func aboutRow(icon: String, text: String) -> some View {
