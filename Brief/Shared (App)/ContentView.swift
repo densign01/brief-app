@@ -21,10 +21,9 @@ struct ContentView: View {
     @State private var alertMessage = ""
     @State private var showingSettings = false
     @State private var alertIsSuccess = false
-    #if os(iOS)
+    // Page selection and article URL for history (both platforms)
     @State private var selectedArticleURL: URL?
     @State private var selectedPage = 0  // 0 = Send, 1 = History
-    #endif
 
     var body: some View {
         #if os(iOS)
@@ -70,37 +69,59 @@ struct ContentView: View {
             }
         }
         #else
-        // macOS: Single page layout (no swiping)
+        // macOS: Segmented picker for Send/History (no swiping)
         ZStack {
             Color.briefBackground
 
-            ScrollView {
-                VStack(spacing: 24) {
+            VStack(spacing: 0) {
+                // Header with segmented picker
+                VStack(spacing: 16) {
                     headerSection
 
-                    if userPreferences.email.isEmpty {
-                        setupPrompt
+                    // Segmented picker for page selection
+                    Picker("", selection: $selectedPage) {
+                        Text("Send").tag(0)
+                        Text("History").tag(1)
                     }
-
-                    VStack(spacing: 20) {
-                        urlInputSection
-
-                        if !title.isEmpty {
-                            titleDisplaySection
-                        }
-
-                        contextInputSection
-                        aiSummarySection
-                        sendButton
-                    }
-                    .padding(20)
-                    .background(Color.white)
-                    .cornerRadius(16)
-                    .shadow(color: Color.black.opacity(0.05), radius: 10, x: 0, y: 4)
-
-                    tipSection
+                    .pickerStyle(.segmented)
+                    .frame(maxWidth: 200)
                 }
-                .padding(20)
+                .padding(.horizontal, 20)
+                .padding(.top, 20)
+
+                // Page content
+                if selectedPage == 0 {
+                    // Send page
+                    ScrollView {
+                        VStack(spacing: 24) {
+                            if userPreferences.email.isEmpty {
+                                setupPrompt
+                            }
+
+                            VStack(spacing: 20) {
+                                urlInputSection
+
+                                if !title.isEmpty {
+                                    titleDisplaySection
+                                }
+
+                                contextInputSection
+                                aiSummarySection
+                                sendButton
+                            }
+                            .padding(20)
+                            .background(Color.white)
+                            .cornerRadius(16)
+                            .shadow(color: Color.black.opacity(0.05), radius: 10, x: 0, y: 4)
+
+                            tipSection
+                        }
+                        .padding(20)
+                    }
+                } else {
+                    // History page
+                    macOSHistoryPage
+                }
             }
         }
         .frame(minWidth: 480, idealWidth: 520, maxWidth: 600, minHeight: 600, idealHeight: 700, maxHeight: 800)
@@ -112,6 +133,20 @@ struct ContentView: View {
         .sheet(isPresented: $showingSettings) {
             SettingsView()
                 .environmentObject(userPreferences)
+        }
+        .onChange(of: selectedArticleURL) { _, newURL in
+            // Open history items in default browser (macOS doesn't have SFSafariViewController)
+            if let url = newURL {
+                NSWorkspace.shared.open(url)
+                selectedArticleURL = nil  // Reset after opening
+            }
+        }
+        .onChange(of: scenePhase) { _, newPhase in
+            // Refresh history when returning to foreground to pick up
+            // any articles sent via Share Extension while backgrounded
+            if newPhase == .active {
+                userPreferences.refreshHistory()
+            }
         }
         #endif
     }
@@ -227,7 +262,72 @@ struct ContentView: View {
         }
     }
     #endif
-    
+
+    // MARK: - macOS History Page
+
+    #if os(macOS)
+    /// History page for macOS (uses segmented picker instead of swipe)
+    private var macOSHistoryPage: some View {
+        ScrollView {
+            VStack(spacing: 16) {
+                // History header
+                HStack {
+                    Label("Recent", systemImage: "clock.arrow.circlepath")
+                        .font(.title2)
+                        .fontWeight(.bold)
+                        .foregroundColor(.primary)
+
+                    Spacer()
+
+                    Text("\(userPreferences.sentHistory.count) sent")
+                        .font(.subheadline)
+                        .foregroundColor(.briefSecondaryText)
+                }
+
+                if userPreferences.sentHistory.isEmpty {
+                    // Empty state
+                    VStack(spacing: 12) {
+                        Image(systemName: "tray")
+                            .font(.system(size: 48))
+                            .foregroundColor(.gray.opacity(0.4))
+                        Text("No links sent yet")
+                            .font(.headline)
+                            .foregroundColor(.briefSecondaryText)
+                        Text("Share a link from Safari to get started")
+                            .font(.caption)
+                            .foregroundColor(.gray)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 60)
+                } else {
+                    // History list
+                    VStack(spacing: 0) {
+                        ForEach(Array(userPreferences.sentHistory.enumerated()), id: \.element.id) { index, article in
+                            Button(action: {
+                                if let url = URL(string: article.url) {
+                                    selectedArticleURL = url
+                                }
+                            }) {
+                                historyRow(article: article)
+                            }
+                            .buttonStyle(PlainButtonStyle())
+
+                            if index < userPreferences.sentHistory.count - 1 {
+                                Divider()
+                                    .padding(.leading, 44)
+                            }
+                        }
+                    }
+                    .background(Color.white)
+                    .cornerRadius(12)
+                    .shadow(color: Color.black.opacity(0.05), radius: 8, x: 0, y: 2)
+                }
+            }
+            .padding(20)
+        }
+    }
+    #endif
+
     // MARK: - Header Section
     private var headerSection: some View {
         HStack(spacing: 12) {
@@ -479,7 +579,7 @@ struct ContentView: View {
                 .font(.caption)
                 .foregroundColor(.briefSecondaryText)
             #else
-            Text("Tip: Use the Share menu in Safari or other apps for faster capture")
+            Text("Use Share menu for faster capture • Switch to History to view sent links")
                 .font(.caption)
                 .foregroundColor(.briefSecondaryText)
             #endif
@@ -490,8 +590,7 @@ struct ContentView: View {
         .cornerRadius(10)
     }
 
-    // MARK: - History Row (shared)
-    #if os(iOS)
+    // MARK: - History Row (shared between iOS and macOS)
     private func historyRow(article: SentArticle) -> some View {
         HStack(spacing: 12) {
             Image(systemName: "doc.text.fill")
@@ -531,7 +630,6 @@ struct ContentView: View {
         .padding(.vertical, 12)
         .contentShape(Rectangle())
     }
-    #endif
     
     // MARK: - Actions
     private func pasteFromClipboard() {

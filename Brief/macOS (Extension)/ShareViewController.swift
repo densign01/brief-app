@@ -325,6 +325,9 @@ class ShareViewController: NSViewController {
 
             if let httpResponse = response as? HTTPURLResponse {
                 if httpResponse.statusCode == 200 {
+                    // Save to history for display in main app
+                    saveToHistory(url: url, title: title)
+
                     await MainActor.run {
                         self.extensionContext?.completeRequest(returningItems: nil, completionHandler: nil)
                     }
@@ -353,5 +356,82 @@ class ShareViewController: NSViewController {
         await MainActor.run {
             showError(message)
         }
+    }
+
+    // MARK: - History Management
+
+    /// Saves sent article to history for display in main app.
+    /// Uses the same App Group storage as the main app and iOS extension.
+    private func saveToHistory(url: String, title: String) {
+        let defaults = UserDefaults(suiteName: appGroup)
+
+        // Load existing history
+        var history: [[String: Any]] = []
+        if let data = defaults?.data(forKey: "sentHistory"),
+           let decoded = try? JSONDecoder().decode([SentArticleData].self, from: data) {
+            history = decoded.map { $0.toDictionary() }
+        }
+
+        // Create new article entry
+        let site = URL(string: url)?.host?.replacingOccurrences(of: "www.", with: "") ?? "Unknown"
+        let newArticle: [String: Any] = [
+            "id": UUID().uuidString,
+            "url": url,
+            "title": title,
+            "site": site,
+            "dateSent": Date().timeIntervalSince1970
+        ]
+
+        // Insert at beginning
+        history.insert(newArticle, at: 0)
+
+        // Keep only last 100
+        if history.count > 100 {
+            history = Array(history.prefix(100))
+        }
+
+        // Convert back to SentArticleData and save
+        let articles = history.compactMap { SentArticleData(from: $0) }
+        if let encoded = try? JSONEncoder().encode(articles) {
+            defaults?.set(encoded, forKey: "sentHistory")
+        }
+    }
+}
+
+// MARK: - History Data Model (for extension)
+
+/// Codable model for storing sent articles in UserDefaults.
+/// Matches the structure used by the main app's UserPreferences.
+private struct SentArticleData: Codable {
+    let id: UUID
+    let url: String
+    let title: String
+    let site: String
+    let dateSent: Date
+
+    init?(from dict: [String: Any]) {
+        guard let idString = dict["id"] as? String,
+              let id = UUID(uuidString: idString),
+              let url = dict["url"] as? String,
+              let title = dict["title"] as? String,
+              let site = dict["site"] as? String,
+              let timestamp = dict["dateSent"] as? TimeInterval else {
+            return nil
+        }
+        self.id = id
+        self.url = url
+        self.title = title
+        self.site = site
+        self.dateSent = Date(timeIntervalSince1970: timestamp)
+    }
+
+    func toDictionary() -> [String: Any] {
+        return [
+            "id": id.uuidString,
+            "url": url,
+            "title": title,
+            "site": site,
+            "dateSent": dateSent.timeIntervalSince1970
+        ]
     }
 }
