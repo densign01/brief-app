@@ -76,17 +76,19 @@ class ShareViewController: NSViewController {
             guard let attachments = item.attachments else { continue }
 
             for attachment in attachments {
-                // Try URL type
+                // Try URL type - only accept http/https schemes for security
                 if attachment.hasItemConformingToTypeIdentifier(UTType.url.identifier) {
                     group.enter()
                     attachment.loadItem(forTypeIdentifier: UTType.url.identifier, options: nil) { [weak self] (data, error) in
                         defer { group.leave() }
-                        if let url = data as? URL {
+                        if let url = data as? URL,
+                           url.scheme == "http" || url.scheme == "https" {
                             if self?.pageURL.isEmpty == true {
                                 self?.pageURL = url.absoluteString
                             }
                         } else if let urlData = data as? Data,
-                                  let url = URL(dataRepresentation: urlData, relativeTo: nil) {
+                                  let url = URL(dataRepresentation: urlData, relativeTo: nil),
+                                  url.scheme == "http" || url.scheme == "https" {
                             if self?.pageURL.isEmpty == true {
                                 self?.pageURL = url.absoluteString
                             }
@@ -155,9 +157,15 @@ class ShareViewController: NSViewController {
 
     private func fetchTitleFromURL() async {
         guard let url = URL(string: pageURL) else { return }
-        
+
+        // Use ephemeral session with timeout to prevent hangs on slow/malicious servers
+        let config = URLSessionConfiguration.ephemeral
+        config.timeoutIntervalForRequest = 10
+        config.timeoutIntervalForResource = 10
+        let session = URLSession(configuration: config)
+
         do {
-            let (data, _) = try await URLSession.shared.data(from: url)
+            let (data, _) = try await session.data(from: url)
             guard let html = String(data: data, encoding: .utf8) else { return }
             
             // Try og:title first (most reliable for articles)

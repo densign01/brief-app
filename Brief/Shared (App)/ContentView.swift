@@ -676,8 +676,14 @@ struct ContentView: View {
         guard let url = URL(string: urlString) else {
             throw URLError(.badURL)
         }
-        
-        let (data, _) = try await URLSession.shared.data(from: url)
+
+        // Use ephemeral session with timeout to prevent hangs on slow/malicious servers
+        let config = URLSessionConfiguration.ephemeral
+        config.timeoutIntervalForRequest = 10
+        config.timeoutIntervalForResource = 10
+        let session = URLSession(configuration: config)
+
+        let (data, _) = try await session.data(from: url)
         let html = String(data: data, encoding: .utf8) ?? ""
         
         // Try og:title first (most reliable)
