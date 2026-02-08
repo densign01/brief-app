@@ -33,3 +33,4 @@ thoughts/
 
 # Debug logs
 firebase-debug.log
+AuthKey_*.p8

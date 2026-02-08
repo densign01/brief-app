@@ -2,20 +2,20 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>LSApplicationCategoryType</key>
-	<string>public.app-category.productivity</string>
 	<key>CFBundleDisplayName</key>
 	<string>Brief</string>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>
+			<key>CFBundleURLName</key>
+			<string>com.danielensign.Brief</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
 				<string>brief</string>
 			</array>
-			<key>CFBundleURLName</key>
-			<string>com.danielensign.Brief</string>
 		</dict>
 	</array>
+	<key>LSApplicationCategoryType</key>
+	<string>public.app-category.productivity</string>
 </dict>
 </plist>
