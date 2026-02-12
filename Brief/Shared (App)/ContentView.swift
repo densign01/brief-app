@@ -21,6 +21,7 @@ struct ContentView: View {
     @State private var alertMessage = ""
     @State private var showingSettings = false
     @State private var alertIsSuccess = false
+    @State private var showingAIConsentSheet = false
     // Page selection and article URL for history (both platforms)
     @State private var selectedArticleURL: URL?
     @State private var selectedPage = 0  // 0 = Send, 1 = History
@@ -503,20 +504,30 @@ struct ContentView: View {
                     Text("AI Summary")
                         .font(.headline)
                 }
-                
+
                 Spacer()
-                
-                Toggle("", isOn: $userPreferences.aiSummaryEnabled)
-                    .toggleStyle(SwitchToggleStyle(tint: .briefPrimary))
-                    .labelsHidden()
+
+                Toggle("", isOn: Binding(
+                    get: { userPreferences.aiSummaryEnabled },
+                    set: { newValue in
+                        if newValue && !userPreferences.hasAcceptedAIDataConsent {
+                            // Show consent sheet before enabling
+                            showingAIConsentSheet = true
+                        } else {
+                            userPreferences.aiSummaryEnabled = newValue
+                        }
+                    }
+                ))
+                .toggleStyle(SwitchToggleStyle(tint: .briefPrimary))
+                .labelsHidden()
             }
-            
+
             if userPreferences.aiSummaryEnabled {
                 HStack(spacing: 12) {
                     Text("Length:")
                         .font(.subheadline)
                         .foregroundColor(.briefSecondaryText)
-                    
+
                     Picker("", selection: $userPreferences.summaryLength) {
                         Text("Short").tag("short")
                         Text("Detailed").tag("long")
@@ -524,7 +535,7 @@ struct ContentView: View {
                     .pickerStyle(SegmentedPickerStyle())
                     .frame(maxWidth: 180)
                 }
-                
+
                 Text("Powered by Gemini • Generates key bullet points")
                     .font(.caption)
                     .foregroundColor(.briefSecondaryText)
@@ -533,6 +544,18 @@ struct ContentView: View {
         .padding(14)
         .background(Color.gray.opacity(0.04))
         .cornerRadius(12)
+        .sheet(isPresented: $showingAIConsentSheet) {
+            AIConsentSheet(
+                onAccept: {
+                    userPreferences.hasAcceptedAIDataConsent = true
+                    userPreferences.aiSummaryEnabled = true
+                    showingAIConsentSheet = false
+                },
+                onDecline: {
+                    showingAIConsentSheet = false
+                }
+            )
+        }
     }
     
     // MARK: - Send Button
@@ -869,6 +892,125 @@ struct SettingsView: View {
             Text(text)
                 .font(.subheadline)
                 .foregroundColor(.briefSecondaryText)
+        }
+    }
+}
+
+// MARK: - AI Consent Sheet
+struct AIConsentSheet: View {
+    let onAccept: () -> Void
+    let onDecline: () -> Void
+
+    var body: some View {
+        VStack(spacing: 24) {
+            // Header
+            VStack(spacing: 12) {
+                ZStack {
+                    Circle()
+                        .fill(Color.briefPrimary.opacity(0.1))
+                        .frame(width: 64, height: 64)
+                    Image(systemName: "sparkles")
+                        .font(.system(size: 28))
+                        .foregroundColor(.briefPrimary)
+                }
+
+                Text("AI Summary")
+                    .font(.title2)
+                    .fontWeight(.bold)
+
+                Text("Data Sharing Disclosure")
+                    .font(.subheadline)
+                    .foregroundColor(.briefSecondaryText)
+            }
+            .padding(.top, 20)
+
+            // Disclosure content
+            VStack(alignment: .leading, spacing: 16) {
+                disclosureRow(
+                    icon: "doc.text",
+                    title: "What's shared",
+                    description: "The link URL and webpage content are sent to generate your summary."
+                )
+
+                disclosureRow(
+                    icon: "building.2",
+                    title: "Who receives it",
+                    description: "Google Gemini processes the content to create bullet-point summaries."
+                )
+
+                disclosureRow(
+                    icon: "hand.raised",
+                    title: "What's not shared",
+                    description: "Your email address and personal notes stay private and are never sent to the AI."
+                )
+            }
+            .padding(20)
+            .background(Color.gray.opacity(0.05))
+            .cornerRadius(16)
+
+            // Privacy link
+            Link(destination: URL(string: "https://send-brief.com/privacy.html")!) {
+                HStack(spacing: 4) {
+                    Text("View Privacy Policy")
+                        .font(.footnote)
+                    Image(systemName: "arrow.up.right")
+                        .font(.caption2)
+                }
+                .foregroundColor(.briefPrimary)
+            }
+
+            Spacer()
+
+            // Buttons
+            VStack(spacing: 12) {
+                Button(action: onAccept) {
+                    Text("Enable AI Summary")
+                        .fontWeight(.semibold)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 16)
+                        .background(
+                            LinearGradient(
+                                colors: [.briefPrimary, .briefSecondary],
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            )
+                        )
+                        .foregroundColor(.white)
+                        .cornerRadius(14)
+                }
+                .buttonStyle(PlainButtonStyle())
+
+                Button(action: onDecline) {
+                    Text("Not Now")
+                        .font(.subheadline)
+                        .foregroundColor(.briefSecondaryText)
+                }
+                .buttonStyle(PlainButtonStyle())
+            }
+            .padding(.bottom, 20)
+        }
+        .padding(.horizontal, 24)
+        #if os(macOS)
+        .frame(width: 400, height: 520)
+        #endif
+    }
+
+    private func disclosureRow(icon: String, title: String, description: String) -> some View {
+        HStack(alignment: .top, spacing: 14) {
+            Image(systemName: icon)
+                .font(.title3)
+                .foregroundColor(.briefPrimary)
+                .frame(width: 28)
+
+            VStack(alignment: .leading, spacing: 4) {
+                Text(title)
+                    .font(.subheadline)
+                    .fontWeight(.semibold)
+                Text(description)
+                    .font(.caption)
+                    .foregroundColor(.briefSecondaryText)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
         }
     }
 }

@@ -15,12 +15,14 @@
         }
         h1 { color: #1a1a1a; }
         h2 { color: #444; margin-top: 2em; }
+        h3 { color: #555; margin-top: 1.5em; }
         .updated { color: #666; font-size: 0.9em; }
+        .highlight { background: #f8f4ff; border-left: 4px solid #6346E0; padding: 16px; margin: 16px 0; border-radius: 4px; }
     </style>
 </head>
 <body>
     <h1>Brief - Privacy Policy</h1>
-    <p class="updated">Last updated: January 17, 2026</p>
+    <p class="updated">Last updated: February 11, 2026</p>
 
     <h2>Overview</h2>
     <p>Brief is a simple app that helps you save web articles to your email. We respect your privacy and collect only what's necessary to provide the service.</p>
@@ -30,41 +32,74 @@
     <ul>
         <li><strong>Email address:</strong> The email address you provide to receive saved articles</li>
         <li><strong>URLs and titles:</strong> The web pages you choose to share through the app</li>
-        <li><strong>Optional notes:</strong> Any context you add when saving an article</li>
+        <li><strong>Optional notes:</strong> Any personal context you add when saving an article</li>
     </ul>
 
     <h2>How We Use Your Information</h2>
     <p>Your information is used solely to:</p>
     <ul>
         <li>Send saved articles to your email address</li>
-        <li>Generate AI summaries when you enable this feature</li>
+        <li>Generate AI summaries when you enable this optional feature</li>
     </ul>
+
+    <h2>AI Summary Feature &amp; Data Sharing</h2>
+    <div class="highlight">
+        <p><strong>When you enable AI Summary, the following data is sent to Google Gemini:</strong></p>
+        <ul>
+            <li>The link URL you are sharing</li>
+            <li>The webpage title</li>
+            <li>The text content of the webpage (up to 10,000 characters)</li>
+        </ul>
+        <p><strong>The following data is NOT sent to Google Gemini:</strong></p>
+        <ul>
+            <li>Your email address</li>
+            <li>Your personal notes</li>
+            <li>Any device identifiers or personal information</li>
+        </ul>
+    </div>
+
+    <h3>How AI Summaries Work</h3>
+    <p>When you enable AI Summary:</p>
+    <ol>
+        <li>Brief fetches the publicly available content from the webpage you're sharing</li>
+        <li>This content is sent to Google Gemini to generate a bullet-point summary</li>
+        <li>The summary is included in the email sent to you</li>
+        <li>No content is permanently stored by Brief after processing</li>
+    </ol>
+
+    <h3>Your Control</h3>
+    <p>AI Summary is an optional feature that requires your explicit consent before activation. You can disable it at any time in the app settings or when sharing a link.</p>
+
+    <h3>Google's Data Practices</h3>
+    <p>When content is processed by Google Gemini, it is subject to <a href="https://policies.google.com/privacy" target="_blank">Google's Privacy Policy</a>. Google provides enterprise-grade data protection for API users.</p>
 
     <h2>Data Storage</h2>
     <ul>
-        <li>Your email address is stored locally on your device</li>
+        <li>Your email address is stored locally on your device only</li>
+        <li>Your send history is stored locally on your device only</li>
         <li>Article data is processed through our API and not permanently stored</li>
-        <li>We do not sell or share your data with third parties</li>
+        <li>We do not sell or share your personal data with third parties for marketing purposes</li>
     </ul>
 
     <h2>Third-Party Services</h2>
-    <p>Brief uses the following services:</p>
+    <p>Brief uses the following services to provide its functionality:</p>
     <ul>
-        <li><strong>Cloudflare Workers:</strong> To process API requests</li>
-        <li><strong>Google Gemini:</strong> To generate article summaries (when enabled)</li>
-        <li><strong>Resend:</strong> To deliver emails</li>
+        <li><strong>Cloudflare Workers:</strong> Processes API requests securely</li>
+        <li><strong>Google Gemini:</strong> Generates article summaries when you enable AI Summary</li>
+        <li><strong>Resend:</strong> Delivers emails to your inbox</li>
     </ul>
+    <p>Each of these services maintains their own privacy policies and data protection practices.</p>
 
     <h2>Your Rights</h2>
     <p>You can:</p>
     <ul>
-        <li>Delete your email from the app at any time</li>
-        <li>Disable AI summaries in settings</li>
+        <li>Delete your email and all local data using "Reset" in Settings</li>
+        <li>Disable AI summaries at any time</li>
         <li>Stop using the service at any time</li>
     </ul>
 
     <h2>Contact</h2>
-    <p>For privacy questions, contact: <a href="mailto:privacy@danielensign.com">privacy@danielensign.com</a></p>
+    <p>For privacy questions, contact: <a href="mailto:help@send-brief.com">help@send-brief.com</a></p>
 
     <h2>Changes</h2>
     <p>We may update this policy occasionally. Continued use of Brief constitutes acceptance of any changes.</p>

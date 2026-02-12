@@ -45,7 +45,13 @@ class UserPreferences: ObservableObject {
             userDefaults.set(summaryLength, forKey: "summaryLength")
         }
     }
-    
+
+    @Published var hasAcceptedAIDataConsent: Bool {
+        didSet {
+            userDefaults.set(hasAcceptedAIDataConsent, forKey: "hasAcceptedAIDataConsent")
+        }
+    }
+
     @Published var hasCompletedOnboarding: Bool {
         didSet {
             userDefaults.set(hasCompletedOnboarding, forKey: "hasCompletedOnboarding")
@@ -59,12 +65,24 @@ class UserPreferences: ObservableObject {
     }
 
     private init() {
-        self.email = userDefaults.string(forKey: "email") ?? ""
-        self.apiEndpoint = userDefaults.string(forKey: "apiEndpoint") ?? "https://quickcapture-api.daniel-ensign.workers.dev"
-        self.aiSummaryEnabled = userDefaults.bool(forKey: "aiSummaryEnabled")
-        self.summaryLength = userDefaults.string(forKey: "summaryLength") ?? "short"
-        self.hasCompletedOnboarding = userDefaults.bool(forKey: "hasCompletedOnboarding")
-        self.sentHistory = loadHistory()
+        // Load history first before other properties that depend on it
+        let defaults = userDefaults
+        let historyData = defaults.data(forKey: "sentHistory")
+        let loadedHistory: [SentArticle]
+        if let data = historyData,
+           let decoded = try? JSONDecoder().decode([SentArticle].self, from: data) {
+            loadedHistory = decoded
+        } else {
+            loadedHistory = []
+        }
+
+        self.email = defaults.string(forKey: "email") ?? ""
+        self.apiEndpoint = defaults.string(forKey: "apiEndpoint") ?? "https://quickcapture-api.daniel-ensign.workers.dev"
+        self.aiSummaryEnabled = defaults.bool(forKey: "aiSummaryEnabled")
+        self.summaryLength = defaults.string(forKey: "summaryLength") ?? "short"
+        self.hasAcceptedAIDataConsent = defaults.bool(forKey: "hasAcceptedAIDataConsent")
+        self.hasCompletedOnboarding = defaults.bool(forKey: "hasCompletedOnboarding")
+        self.sentHistory = loadedHistory
     }
 
     // MARK: - History Management
@@ -117,5 +135,6 @@ class UserPreferences: ObservableObject {
         sentHistory = []
         aiSummaryEnabled = false
         summaryLength = "short"
+        hasAcceptedAIDataConsent = false
     }
 }

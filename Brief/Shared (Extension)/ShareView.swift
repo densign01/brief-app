@@ -18,8 +18,10 @@ struct ShareView: View {
     @State private var context = ""
     @State private var aiSummaryEnabled: Bool
     @State private var summaryLength: String
+    @State private var hasAcceptedAIConsent: Bool
     @State private var isLoading = false
     @State private var errorMessage: String?
+    @State private var showingAIConsentSheet = false
 
     private let appGroup = "group.com.danielensign.Brief"
 
@@ -31,8 +33,9 @@ struct ShareView: View {
 
         // Load preferences from app group
         let defaults = UserDefaults(suiteName: "group.com.danielensign.Brief")
-        _aiSummaryEnabled = State(initialValue: defaults?.bool(forKey: "aiSummaryEnabled") ?? true)
+        _aiSummaryEnabled = State(initialValue: defaults?.bool(forKey: "aiSummaryEnabled") ?? false)
         _summaryLength = State(initialValue: defaults?.string(forKey: "summaryLength") ?? "short")
+        _hasAcceptedAIConsent = State(initialValue: defaults?.bool(forKey: "hasAcceptedAIDataConsent") ?? false)
     }
 
     var body: some View {
@@ -195,15 +198,23 @@ struct ShareView: View {
                         .font(.subheadline)
                         .fontWeight(.medium)
                 }
-                
+
                 Spacer()
-                
-                Toggle("", isOn: $aiSummaryEnabled)
-                    .toggleStyle(SwitchToggleStyle(tint: .briefPrimary))
-                    .labelsHidden()
-                    .onChange(of: aiSummaryEnabled) { _, newValue in
-                        savePreference(key: "aiSummaryEnabled", value: newValue)
+
+                Toggle("", isOn: Binding(
+                    get: { aiSummaryEnabled },
+                    set: { newValue in
+                        if newValue && !hasAcceptedAIConsent {
+                            // Show consent sheet before enabling
+                            showingAIConsentSheet = true
+                        } else {
+                            aiSummaryEnabled = newValue
+                            savePreference(key: "aiSummaryEnabled", value: newValue)
+                        }
                     }
+                ))
+                .toggleStyle(SwitchToggleStyle(tint: .briefPrimary))
+                .labelsHidden()
             }
 
             if aiSummaryEnabled {
@@ -220,6 +231,20 @@ struct ShareView: View {
         .padding(12)
         .background(Color.gray.opacity(0.04))
         .cornerRadius(10)
+        .sheet(isPresented: $showingAIConsentSheet) {
+            ShareExtensionAIConsentSheet(
+                onAccept: {
+                    hasAcceptedAIConsent = true
+                    aiSummaryEnabled = true
+                    savePreference(key: "hasAcceptedAIDataConsent", value: true)
+                    savePreference(key: "aiSummaryEnabled", value: true)
+                    showingAIConsentSheet = false
+                },
+                onDecline: {
+                    showingAIConsentSheet = false
+                }
+            )
+        }
     }
     
     // MARK: - Error Section
@@ -286,6 +311,113 @@ struct ShareView: View {
     func showError(_ message: String) {
         isLoading = false
         errorMessage = message
+    }
+}
+
+// MARK: - AI Consent Sheet for Share Extension
+struct ShareExtensionAIConsentSheet: View {
+    let onAccept: () -> Void
+    let onDecline: () -> Void
+
+    var body: some View {
+        VStack(spacing: 20) {
+            // Header
+            VStack(spacing: 10) {
+                ZStack {
+                    Circle()
+                        .fill(Color.briefPrimary.opacity(0.1))
+                        .frame(width: 56, height: 56)
+                    Image(systemName: "sparkles")
+                        .font(.system(size: 24))
+                        .foregroundColor(.briefPrimary)
+                }
+
+                Text("AI Summary")
+                    .font(.headline)
+                    .fontWeight(.bold)
+
+                Text("Data Sharing Disclosure")
+                    .font(.caption)
+                    .foregroundColor(.briefSecondaryText)
+            }
+            .padding(.top, 16)
+
+            // Disclosure content
+            VStack(alignment: .leading, spacing: 12) {
+                disclosureRow(
+                    icon: "doc.text",
+                    title: "What's shared",
+                    description: "Link URL and webpage content"
+                )
+
+                disclosureRow(
+                    icon: "building.2",
+                    title: "Who receives it",
+                    description: "Google Gemini for summary generation"
+                )
+
+                disclosureRow(
+                    icon: "hand.raised",
+                    title: "What's not shared",
+                    description: "Your email and personal notes"
+                )
+            }
+            .padding(16)
+            .background(Color.gray.opacity(0.05))
+            .cornerRadius(12)
+
+            Spacer()
+
+            // Buttons
+            VStack(spacing: 10) {
+                Button(action: onAccept) {
+                    Text("Enable AI Summary")
+                        .fontWeight(.semibold)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 14)
+                        .background(
+                            LinearGradient(
+                                colors: [.briefPrimary, .briefSecondary],
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            )
+                        )
+                        .foregroundColor(.white)
+                        .cornerRadius(12)
+                }
+                .buttonStyle(PlainButtonStyle())
+
+                Button(action: onDecline) {
+                    Text("Not Now")
+                        .font(.caption)
+                        .foregroundColor(.briefSecondaryText)
+                }
+                .buttonStyle(PlainButtonStyle())
+            }
+            .padding(.bottom, 16)
+        }
+        .padding(.horizontal, 20)
+        #if os(macOS)
+        .frame(width: 320, height: 400)
+        #endif
+    }
+
+    private func disclosureRow(icon: String, title: String, description: String) -> some View {
+        HStack(alignment: .top, spacing: 12) {
+            Image(systemName: icon)
+                .font(.subheadline)
+                .foregroundColor(.briefPrimary)
+                .frame(width: 24)
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text(title)
+                    .font(.caption)
+                    .fontWeight(.semibold)
+                Text(description)
+                    .font(.caption2)
+                    .foregroundColor(.briefSecondaryText)
+            }
+        }
     }
 }
 
