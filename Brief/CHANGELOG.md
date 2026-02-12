@@ -2,7 +2,7 @@
 
 All notable changes to the Brief iOS app.
 
-## [1.1] - Unreleased
+## [1.1] - 2026-02-11
 
 ### Added
 - **Send History** - View recently sent links
@@ -12,10 +12,19 @@ All notable changes to the Brief iOS app.
 - History syncs between main app and Share Extension
 - Stores last 100 articles
 - Auto-refresh history when returning from background
+- **AI Data Consent** - Consent dialog when enabling AI Summary
+  - Explains what data is shared (URL, page content)
+  - Identifies recipient (Google Gemini)
+  - Clarifies what is NOT shared (email, personal notes)
 
 ### Changed
 - Theme colors moved to shared Theme.swift file
 - macOS Share Extension now saves to history (parity with iOS)
+- Updated privacy policy with detailed AI data sharing disclosure
+
+### Security
+- Added URL scheme filter (http/https only) for macOS Share Extension
+- Added 10-second timeout for network requests
 
 ## [1.0] - 2025-01-19
 
