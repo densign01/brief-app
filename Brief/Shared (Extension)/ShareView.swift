@@ -347,13 +347,13 @@ struct ShareExtensionAIConsentSheet: View {
                 disclosureRow(
                     icon: "doc.text",
                     title: "What's shared",
-                    description: "Link URL and webpage content"
+                    description: "Link URL, page title, and text content (up to 10,000 characters)"
                 )
 
                 disclosureRow(
                     icon: "building.2",
                     title: "Who receives it",
-                    description: "Google Gemini for summary generation"
+                    description: "Google Gemini, a third-party AI service by Google"
                 )
 
                 disclosureRow(

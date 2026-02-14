@@ -929,13 +929,13 @@ struct AIConsentSheet: View {
                 disclosureRow(
                     icon: "doc.text",
                     title: "What's shared",
-                    description: "The link URL and webpage content are sent to generate your summary."
+                    description: "The link URL, page title, and text content (up to 10,000 characters) are sent to generate your summary."
                 )
 
                 disclosureRow(
                     icon: "building.2",
                     title: "Who receives it",
-                    description: "Google Gemini processes the content to create bullet-point summaries."
+                    description: "Google Gemini, a third-party AI service operated by Google, processes this data to create bullet-point summaries."
                 )
 
                 disclosureRow(
