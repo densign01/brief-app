@@ -11,6 +11,18 @@ api_key = app_store_connect_api_key(
 )
 
 platform :ios do
+  desc "Build iOS App Store package without uploading"
+  lane :build_ios do
+    build_app(
+      project: "Brief.xcodeproj",
+      scheme: "Brief (iOS)",
+      clean: true,
+      export_method: "app-store",
+      output_directory: File.expand_path("~/Desktop/BriefArchives/iOS-Export"),
+      output_name: "Brief.ipa"
+    )
+  end
+
   desc "Upload iOS build to App Store Connect"
   lane :upload_ios do
     upload_to_app_store(
@@ -24,19 +36,24 @@ platform :ios do
 
   desc "Build and upload iOS"
   lane :release_ios do
-    build_app(
-      project: "Brief.xcodeproj",
-      scheme: "Brief (iOS)",
-      clean: true,
-      export_method: "app-store",
-      output_directory: File.expand_path("~/Desktop/BriefArchives/iOS-Export"),
-      output_name: "Brief.ipa"
-    )
+    build_ios
     upload_ios
   end
 end
 
 platform :mac do
+  desc "Build macOS App Store package without uploading"
+  lane :build_macos do
+    build_app(
+      project: "Brief.xcodeproj",
+      scheme: "Brief (macOS)",
+      clean: true,
+      export_method: "app-store",
+      output_directory: File.expand_path("~/Desktop/BriefArchives/macOS-Export"),
+      output_name: "Brief.pkg"
+    )
+  end
+
   desc "Upload macOS build to App Store Connect"
   lane :upload_macos do
     upload_to_app_store(
@@ -51,14 +68,7 @@ platform :mac do
 
   desc "Build and upload macOS"
   lane :release_macos do
-    build_app(
-      project: "Brief.xcodeproj",
-      scheme: "Brief (macOS)",
-      clean: true,
-      export_method: "app-store",
-      output_directory: File.expand_path("~/Desktop/BriefArchives/macOS-Export"),
-      output_name: "Brief.pkg"
-    )
+    build_macos
     upload_macos
   end
 end

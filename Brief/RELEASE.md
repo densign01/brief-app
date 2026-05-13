@@ -43,7 +43,14 @@ xcodebuild -project Brief/Brief.xcodeproj -scheme "Brief (iOS)" -configuration R
 
 ## Mac App Store Upload
 
-Only run this after an explicit approval checkpoint, because it creates and uploads a signed App Store package.
+Use this first if you want a local signed package without uploading:
+
+```sh
+cd /Users/densign/Documents/Coding-Projects/brief-app/Brief
+fastlane mac build_macos
+```
+
+Only run this after an explicit approval checkpoint, because it creates and uploads a signed App Store package:
 
 ```sh
 cd /Users/densign/Documents/Coding-Projects/brief-app/Brief
@@ -76,3 +83,4 @@ Before submitting for review:
 ## Known Blockers
 
 - App Store upload/submission should wait for approval because it touches App Store Connect.
+- Local macOS archive succeeds, but App Store package export currently fails because this Mac is missing the required `Mac Installer Distribution` signing certificate. Xcode also reports stale/missing Apple account credentials in Keychain during export. Resolve signing in Xcode/App Store Connect before running `fastlane mac release_macos`.
