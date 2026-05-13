@@ -999,15 +999,16 @@ struct AIConsentSheet: View {
             .background(Color.gray.opacity(0.05))
             .cornerRadius(16)
 
-            // Privacy link
-            Link(destination: URL(string: "https://send-brief.com/privacy.html")!) {
-                HStack(spacing: 4) {
-                    Text("View Privacy Policy")
-                        .font(.footnote)
-                    Image(systemName: "arrow.up.right")
-                        .font(.caption2)
+            if let privacyURL = URL(string: "https://send-brief.com/privacy.html") {
+                Link(destination: privacyURL) {
+                    HStack(spacing: 4) {
+                        Text("View Privacy Policy")
+                            .font(.footnote)
+                        Image(systemName: "arrow.up.right")
+                            .font(.caption2)
+                    }
+                    .foregroundColor(.briefPrimary)
                 }
-                .foregroundColor(.briefPrimary)
             }
 
             Spacer()

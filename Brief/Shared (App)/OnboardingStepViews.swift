@@ -119,21 +119,23 @@ struct EnableExtensionStepView: View {
                     .multilineTextAlignment(.center)
                     .padding(.horizontal, 10)
                 
-                Link(destination: URL(string: "https://densign01.github.io/quickcapture/setup.html")!) {
-                    HStack {
-                        Image(systemName: "safari")
-                        Text("Open Setup Guide in Safari")
-                            .fontWeight(.semibold)
+                if let setupURL = URL(string: "https://densign01.github.io/quickcapture/setup.html") {
+                    Link(destination: setupURL) {
+                        HStack {
+                            Image(systemName: "safari")
+                            Text("Open Setup Guide in Safari")
+                                .fontWeight(.semibold)
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 14)
+                        .background(Color.briefPrimary.opacity(0.1))
+                        .foregroundColor(.briefPrimary)
+                        .cornerRadius(12)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 12)
+                                .stroke(Color.briefPrimary.opacity(0.2), lineWidth: 1)
+                        )
                     }
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 14)
-                    .background(Color.briefPrimary.opacity(0.1))
-                    .foregroundColor(.briefPrimary)
-                    .cornerRadius(12)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 12)
-                            .stroke(Color.briefPrimary.opacity(0.2), lineWidth: 1)
-                    )
                 }
                 
                 Text("Or follow manually:")
