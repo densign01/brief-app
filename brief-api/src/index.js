@@ -28,6 +28,69 @@ function escapeHTML(value) {
 		.replace(/'/g, '&#39;');
 }
 
+const EMAIL_FROM = {
+	email: 'brief@send-brief.com',
+	name: 'Brief',
+};
+
+function buildEmailSubject(site, title) {
+	const siteName = getWebsiteName(site).replace(/[\r\n]+/g, ' ').trim();
+	const cleanTitle = String(title || 'Saved link').replace(/[\r\n]+/g, ' ').trim();
+	const maxTitleLength = Math.max(20, 150 - siteName.length - 2); // 2 for ": " separator
+	const truncatedTitle = cleanTitle.length > maxTitleLength
+		? cleanTitle.substring(0, maxTitleLength - 3) + '...'
+		: cleanTitle;
+
+	return `${siteName}: ${truncatedTitle}`;
+}
+
+function stripMarkdownForText(text) {
+	return String(text || '')
+		.replace(/\*\*(.+?)\*\*/g, '$1')
+		.replace(/\*(.+?)\*/g, '$1')
+		.replace(/`(.+?)`/g, '$1')
+		.trim();
+}
+
+function buildEmailText({ title, url, author, date, context, summaryText }) {
+	const lines = [
+		title || 'Saved link',
+		date,
+		author,
+		url,
+	];
+
+	if (context) {
+		lines.push('', `Note: ${context}`);
+	}
+
+	if (summaryText) {
+		lines.push('', 'Summary:', stripMarkdownForText(summaryText));
+	}
+
+	lines.push('', 'Sent via Brief');
+	return lines
+		.filter(line => line !== undefined && line !== null)
+		.map(line => String(line).trim())
+		.join('\n');
+}
+
+async function sendEmail(env, message) {
+	if (!env.EMAIL || typeof env.EMAIL.send !== 'function') {
+		throw new Error('Cloudflare Email binding EMAIL is not configured');
+	}
+
+	try {
+		await env.EMAIL.send(message);
+	} catch (error) {
+		console.error('Cloudflare Email send error:', JSON.stringify({
+			code: error?.code,
+			message: error?.message,
+		}));
+		throw new Error(error?.message || 'Failed to send email');
+	}
+}
+
 export default {
 	async fetch(request, env, ctx) {
 		// Handle CORS
@@ -170,6 +233,7 @@ export default {
 			context = context || '';
 
 			let summaryHTML = '';
+			let summaryTextForEmail = '';
 			let parsedContent = { author: '', date: '' };
 
 			// For tweets, use the tweet content; for articles, parse metadata and generate summary
@@ -181,6 +245,7 @@ export default {
 					.filter(line => line)
 					.map(escapeHTML)
 					.join('<br>');
+				summaryTextForEmail = tweetContent.tweetText;
 
 				const authorName = escapeHTML(tweetContent.authorName);
 				const authorHandle = escapeHTML(tweetContent.authorHandle);
@@ -220,6 +285,7 @@ export default {
 					}
 
 					if (summaryText) {
+						summaryTextForEmail = summaryText;
 						const bullets = summaryText.split('\n').filter(line => line.trim());
 						const headerText = isTitleBased
 							? 'Summary (AI-generated from title - full article not accessible):'
@@ -233,6 +299,7 @@ export default {
 				  </div>
 				`;
 					} else {
+						summaryTextForEmail = 'Summary could not be generated for this article.';
 						summaryHTML = `
 				  <div style="margin: 20px 0;">
 					<h2 style="font-size: 18px; font-weight: bold; color: #000; margin-bottom: 12px;">Summary:</h2>
@@ -274,34 +341,20 @@ export default {
 		  </div>
 		`;
 
-			// Send email using Resend
-			// Truncate subject to avoid Resend's 2000 char limit (keep it email-friendly at 150 chars)
-			const siteName = getWebsiteName(site).replace(/[\r\n]+/g, ' ').trim();
-			const cleanTitle = title.replace(/[\r\n]+/g, ' ').trim();
-			const maxTitleLength = 150 - siteName.length - 2; // 2 for ": " separator
-			const truncatedTitle = cleanTitle.length > maxTitleLength
-				? cleanTitle.substring(0, maxTitleLength - 3) + '...'
-				: cleanTitle;
-
-			const emailResponse = await fetch('https://api.resend.com/emails', {
-				method: 'POST',
-				headers: {
-					'Authorization': `Bearer ${env.RESEND_API_KEY}`,
-					'Content-Type': 'application/json'
-				},
-				body: JSON.stringify({
-					from: 'Brief <brief@send-brief.com>',
-					to: [email],
-					subject: `${siteName}: ${truncatedTitle}`,
-					html: emailHTML
-				})
+			await sendEmail(env, {
+				from: EMAIL_FROM,
+				to: email,
+				subject: buildEmailSubject(site, title),
+				html: emailHTML,
+				text: buildEmailText({
+					title,
+					url,
+					author: parsedContent.author,
+					date: parsedContent.date,
+					context,
+					summaryText: summaryTextForEmail,
+				}),
 			});
-
-			if (!emailResponse.ok) {
-				const resendError = await emailResponse.json();
-				console.error('Resend API error:', JSON.stringify(resendError));
-				throw new Error(resendError.message || 'Failed to send email');
-			}
 
 			return new Response(JSON.stringify({ success: true }), {
 				headers: {

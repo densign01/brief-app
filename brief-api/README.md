@@ -63,7 +63,7 @@ Brief is also available as a browser extension! The extension provides the same 
 ### Backend (Cloudflare Workers)
 - **Technology**: Cloudflare Workers
 - **AI Model**: Gemini 2.0 Flash (via Google Gemini API)
-- **Email Service**: Resend API
+- **Email Service**: Cloudflare Email Sending Worker binding
 - **Features**:
   - Article content scraping
   - Paywall detection and fallback
@@ -130,8 +130,10 @@ wrangler deploy
 ```
 
 Required environment variables for the Worker:
-- `RESEND_API_KEY`: Your Resend API key
 - `GOOGLE_API_KEY`: Your Google Gemini API key
+
+Required Cloudflare bindings:
+- `EMAIL`: Cloudflare Email Sending binding, restricted to `brief@send-brief.com`
 
 ## 🎯 Future Enhancements
 

@@ -80,7 +80,7 @@ A: QuickCapture stores:
 - **On servers**: Nothing! No user data is retained after processing
 
 ### **Q: Can QuickCapture see my email content?**
-A: No. QuickCapture only sends emails through the Resend service. We cannot access your inbox or read your emails.
+A: No. QuickCapture sends emails through Cloudflare Email Sending. We cannot access your inbox or read your emails.
 
 ### **Q: What happens to the articles I process?**
 A: Article content is fetched temporarily to generate summaries, then discarded. No article content or URLs are stored in our systems.

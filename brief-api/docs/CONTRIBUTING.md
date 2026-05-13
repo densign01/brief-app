@@ -47,12 +47,11 @@ python -m http.server 8000
 
 ### Environment Configuration
 Create necessary API keys for testing:
-- Resend API key (for email testing)
+- Cloudflare Email Sending enabled for the sending domain
 - Google Gemini API key (for AI summary testing)
 
 ```bash
 # Set up Worker secrets for local testing
-wrangler secret put RESEND_API_KEY
 wrangler secret put GOOGLE_API_KEY
 ```
 
@@ -187,13 +186,13 @@ Any additional context or considerations.
 ### Backend (`api/index.js`)
 - **Cloudflare Workers** serverless function
 - **Event-driven architecture** with async/await
-- **External API integrations** (Google Gemini, Resend)
+- **External API integrations** (Google Gemini, Cloudflare Email Sending)
 - **Error handling** with detailed logging
 
 ### Key Components
 - **Article analysis**: URL parsing and content extraction
 - **AI summaries**: Google Gemini integration
-- **Email delivery**: Resend API with HTML templates
+- **Email delivery**: Cloudflare Email Sending with HTML templates
 - **Paywall detection**: Smart fallback mechanisms
 
 ## 🔧 Development Tips
@@ -235,7 +234,7 @@ return new Response(JSON.stringify(data), {
 - [Cloudflare Workers Docs](https://developers.cloudflare.com/workers/)
 - [Vercel Documentation](https://vercel.com/docs)
 - [Google Gemini API Docs](https://ai.google.dev/gemini-api/docs)
-- [Resend API Docs](https://resend.com/docs)
+- [Cloudflare Email Sending Docs](https://developers.cloudflare.com/email-service/)
 
 ### Tools
 - [Wrangler CLI](https://developers.cloudflare.com/workers/wrangler/)

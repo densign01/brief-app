@@ -12,7 +12,15 @@
 	],
 	"observability": {
 		"enabled": true
-	}
+	},
+	"send_email": [
+		{
+			"name": "EMAIL",
+			"allowed_sender_addresses": [
+				"brief@send-brief.com"
+			]
+		}
+	]
 	/**
 	 * Smart Placement
 	 * Docs: https://developers.cloudflare.com/workers/configuration/smart-placement/#smart-placement

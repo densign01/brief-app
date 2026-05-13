@@ -13,13 +13,13 @@ You need to add your AI provider API keys as secrets:
 
 ```bash
 cd quickcapture-api
-wrangler secret put RESEND_API_KEY
 wrangler secret put GOOGLE_API_KEY
 ```
 
 **Get these keys:**
-- **Resend API Key**: Sign up at [resend.com](https://resend.com) → Dashboard → API Keys → Create
 - **Google Gemini API Key**: Create an API key in [Google AI Studio](https://aistudio.google.com/) for Gemini access
+
+Brief now sends email through Cloudflare Email Sending. Before deploying, make sure `send-brief.com` is onboarded in Cloudflare Email Sending and that the Worker has the `EMAIL` binding from `wrangler.jsonc`.
 
 ### 2. Create iOS Shortcut (Simplified!)
 
@@ -97,7 +97,8 @@ wrangler deploy
 - Add the `GOOGLE_API_KEY` secret
 
 ### "Failed to send email"
-- Check that `RESEND_API_KEY` is properly set
+- Check that Cloudflare Email Sending is enabled for `send-brief.com`
+- Check that `brief@send-brief.com` is an allowed sender for the Worker `EMAIL` binding
 - Verify the email address format is valid
 
 ### Shortcut not appearing in Share Sheet

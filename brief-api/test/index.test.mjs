@@ -3,9 +3,25 @@ import assert from 'node:assert/strict';
 import worker from '../src/index.js';
 
 const env = {
-	RESEND_API_KEY: 'test-resend-key',
 	GOOGLE_API_KEY: 'test-google-key',
+	EMAIL: {
+		async send() {
+			return { messageId: 'test-message-id' };
+		},
+	},
 };
+
+function createEnv(emailMessages = []) {
+	return {
+		...env,
+		EMAIL: {
+			async send(message) {
+				emailMessages.push(message);
+				return { messageId: 'test-message-id' };
+			},
+		},
+	};
+}
 
 function post(body) {
 	return new Request('https://brief.test/', {
@@ -72,7 +88,7 @@ test('rejects invalid email addresses before sending email', async (t) => {
 });
 
 test('sends an email without leaking raw HTML from user or page content', async (t) => {
-	let resendBody;
+	const emailMessages = [];
 	stubFetch(t, async (input, init) => {
 		const target = typeof input === 'string' ? input : input.toString();
 
@@ -87,11 +103,6 @@ test('sends an email without leaking raw HTML from user or page content', async 
 			`);
 		}
 
-		if (target === 'https://api.resend.com/emails') {
-			resendBody = JSON.parse(String(init?.body));
-			return new Response(JSON.stringify({ id: 'email_123' }), { status: 200 });
-		}
-
 		throw new Error(`Unexpected fetch: ${target}`);
 	});
 
@@ -101,23 +112,30 @@ test('sends an email without leaking raw HTML from user or page content', async 
 		email: 'reader@example.com',
 		context: 'My note <img src=x onerror=alert(1)>',
 		aiSummary: false,
-	}), env, {});
+	}), createEnv(emailMessages), {});
 	const body = await readJSON(response);
 
 	assert.equal(response.status, 200);
 	assert.equal(body.success, true);
-	assert.deepEqual(resendBody.to, ['reader@example.com']);
+	assert.equal(emailMessages.length, 1);
+	assert.deepEqual(emailMessages[0].from, {
+		email: 'brief@send-brief.com',
+		name: 'Brief',
+	});
+	assert.equal(emailMessages[0].to, 'reader@example.com');
+	assert.equal(emailMessages[0].subject, 'Example: A title <script>alert(1)</script>');
 
-	const html = String(resendBody.html);
+	const html = String(emailMessages[0].html);
 	assert.match(html, /A title &lt;script&gt;alert\(1\)&lt;\/script&gt;/);
 	assert.match(html, /My note &lt;img src=x onerror=alert\(1\)&gt;/);
 	assert.match(html, /&lt;img src=x onerror=alert\(1\)&gt;/);
 	assert.equal(html.includes('<script>'), false);
 	assert.equal(html.includes('<img src=x'), false);
+	assert.match(String(emailMessages[0].text), /My note <img src=x onerror=alert\(1\)>/);
 });
 
 test('escapes AI summary output while preserving simple formatting', async (t) => {
-	let resendBody;
+	const emailMessages = [];
 	const longArticleText = 'This is article content. '.repeat(80);
 
 	stubFetch(t, async (input, init) => {
@@ -139,11 +157,6 @@ test('escapes AI summary output while preserving simple formatting', async (t) =
 			}));
 		}
 
-		if (target === 'https://api.resend.com/emails') {
-			resendBody = JSON.parse(String(init?.body));
-			return new Response(JSON.stringify({ id: 'email_456' }), { status: 200 });
-		}
-
 		throw new Error(`Unexpected fetch: ${target}`);
 	});
 
@@ -153,14 +166,47 @@ test('escapes AI summary output while preserving simple formatting', async (t) =
 		email: 'reader@example.com',
 		aiSummary: true,
 		summaryLength: 'short',
-	}), env, {});
+	}), createEnv(emailMessages), {});
 	const body = await readJSON(response);
 
 	assert.equal(response.status, 200);
 	assert.equal(body.success, true);
 
-	const html = String(resendBody.html);
+	assert.equal(emailMessages.length, 1);
+	const html = String(emailMessages[0].html);
 	assert.match(html, /<strong>Important &lt;unsafe&gt; point<\/strong>/);
 	assert.match(html, /<code>quoted &amp; risky<\/code> detail/);
 	assert.equal(html.includes('<unsafe>'), false);
+	assert.match(String(emailMessages[0].text), /Important <unsafe> point/);
+});
+
+test('returns a clear error when Cloudflare email binding is missing', async (t) => {
+	const originalError = console.error;
+	console.error = () => {};
+	t.after(() => {
+		console.error = originalError;
+	});
+
+	stubFetch(t, async (input) => {
+		const target = typeof input === 'string' ? input : input.toString();
+
+		if (target === 'https://example.com/article') {
+			return new Response('<html></html>');
+		}
+
+		throw new Error(`Unexpected fetch: ${target}`);
+	});
+
+	const response = await worker.fetch(post({
+		url: 'https://example.com/article',
+		title: 'Safe title',
+		email: 'reader@example.com',
+		aiSummary: false,
+	}), {
+		GOOGLE_API_KEY: 'test-google-key',
+	}, {});
+	const body = await readJSON(response);
+
+	assert.equal(response.status, 500);
+	assert.equal(body.error, 'Cloudflare Email binding EMAIL is not configured');
 });

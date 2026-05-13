@@ -9,19 +9,14 @@ This guide covers deploying both the frontend and backend components of QuickCap
 - Accounts for:
   - [Vercel](https://vercel.com) (for frontend)
   - [Cloudflare](https://cloudflare.com) (for backend API)
-  - [Resend](https://resend.com) (for email delivery)
   - [Google Gemini](https://aistudio.google.com/) (for AI summaries)
+  - Cloudflare Email Sending enabled for `send-brief.com`
 
 ## API Keys Required
 
 Before deployment, obtain these API keys:
 
-1. **Resend API Key**
-   - Sign up at [resend.com](https://resend.com)
-   - Go to API Keys section
-   - Create a new API key
-
-2. **Google Gemini API Key**
+1. **Google Gemini API Key**
    - Sign up at [Google AI Studio](https://aistudio.google.com/)
    - Go to API Keys section
    - Create a new API key
@@ -44,12 +39,11 @@ Navigate to the API directory and set up secrets:
 
 ```bash
 cd api/
-wrangler secret put RESEND_API_KEY
-# Enter your Resend API key when prompted
-
 wrangler secret put GOOGLE_API_KEY
 # Enter your Google Gemini API key when prompted
 ```
+
+Email delivery uses the Cloudflare `EMAIL` binding configured in `wrangler.jsonc`; there is no separate email provider API key to set.
 
 ### 4. Deploy the Worker
 ```bash
@@ -157,11 +151,7 @@ Use the deployment steps above for production deployment.
 ### Backend Secrets (Cloudflare)
 ```bash
 # Required secrets
-wrangler secret put RESEND_API_KEY
 wrangler secret put GOOGLE_API_KEY
-
-# Optional: Custom email domain
-wrangler secret put EMAIL_DOMAIN
 ```
 
 ### Frontend Environment Variables (Vercel)
@@ -230,9 +220,9 @@ wrangler secret list
 - Inspect browser network tab for errors
 
 **Email delivery fails:**
-- Verify Resend API key is correct
-- Check Resend dashboard for delivery status
-- Ensure "from" email domain is verified in Resend
+- Verify Cloudflare Email Sending is enabled for `send-brief.com`
+- Check that `brief@send-brief.com` is allowed by the Worker `EMAIL` binding
+- Check Cloudflare Email Sending logs and Worker logs for delivery errors
 
 **AI summaries not working:**
 - Verify Google Gemini API key
@@ -278,7 +268,7 @@ wrangler dev
 
 ### External APIs
 - **Google Gemini:** Pay-per-use, monitor token usage
-- **Resend:** Free tier includes 3,000 emails/month
+- **Cloudflare Email Sending:** Review current Cloudflare Email Service limits and pricing for the account
 
 ## Updates & Maintenance
 

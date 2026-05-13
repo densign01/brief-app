@@ -85,7 +85,7 @@ getWebsiteName(site)
 
 **External Integrations:**
 - **Google Gemini API** - Google Gemini for AI summaries
-- **Resend API** - Email delivery service
+- **Cloudflare Email Sending** - Email delivery service
 - **Article parsing** - HTTP fetch and HTML parsing
 
 ## 📊 Data Flow
@@ -107,7 +107,7 @@ Frontend sends request → Backend fetches article → AI processes content
 
 ### 4. Email Delivery
 ```
-Generate HTML email → Send via Resend → Return success/error
+Generate HTML email → Send via Cloudflare Email Sending → Return success/error
 ```
 
 ## 🔧 Configuration Files
@@ -144,7 +144,7 @@ Generate HTML email → Send via Resend → Return success/error
 
 ### Backend Secrets (Cloudflare Workers)
 ```bash
-RESEND_API_KEY      # Email delivery service
+EMAIL               # Cloudflare Email Sending binding
 GOOGLE_API_KEY   # AI summary generation
 ```
 
@@ -298,7 +298,7 @@ try {
 - **Cold start** - <10ms typical
 - **Response time** - <100ms for simple requests
 - **AI processing** - 1-3 seconds depending on article length
-- **Email delivery** - 1-5 seconds via Resend
+- **Email delivery** - 1-5 seconds via Cloudflare Email Sending
 - **Global edge** - <50ms latency worldwide
 
 ## 🧪 Testing Strategy

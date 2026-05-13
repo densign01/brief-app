@@ -262,7 +262,7 @@ QuickCapture was created to solve a real problem: **efficiently building persona
 **Made possible by these amazing technologies:**
 - [Cloudflare Workers](https://workers.cloudflare.com/) - Global serverless platform
 - [Google Gemini](https://ai.google.dev/gemini-api) - Advanced AI for summaries
-- [Resend](https://resend.com/) - Reliable email delivery
+- [Cloudflare Email Sending](https://developers.cloudflare.com/email-service/) - Reliable email delivery
 - [Vercel](https://vercel.com/) - Frontend hosting and deployment
 
 ---

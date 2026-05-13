@@ -171,7 +171,7 @@ The API includes comprehensive error handling for:
 - Invalid or missing request parameters
 - Network failures when fetching articles
 - AI API failures (Google Gemini)
-- Email delivery failures (Resend)
+- Email delivery failures (Cloudflare Email Sending)
 
 All errors are returned as JSON with descriptive error messages.
 
@@ -186,7 +186,7 @@ All errors are returned as JSON with descriptive error messages.
 
 The API relies on these external services:
 - **Google Gemini API** for AI summary generation
-- **Resend API** for email delivery
+- **Cloudflare Email Sending** for email delivery
 - **Cloudflare Workers** for hosting and edge computing
 
 ## Status & Monitoring
