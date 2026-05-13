@@ -22,7 +22,7 @@ Current release candidate:
    - The Worker must have the `EMAIL` Send Email binding from `brief-api/wrangler.jsonc`.
    - A real Brief send should deliver from `brief@send-brief.com`.
    - AI Summary uses Gemini first and Anthropic as a backup if `ANTHROPIC_API_KEY` is configured.
-   - The current live Worker still needs either a usable `GOOGLE_API_KEY` with Generative Language API access or the Anthropic backup code deployed and smoke-tested.
+   - The Anthropic backup path is deployed and smoke-tested. The current `GOOGLE_API_KEY` still cannot call the Generative Language API, but this is not blocking the release while the backup is configured.
 6. Confirm the Mac App Store package export succeeds.
    - Current verified package: `/Users/densign/Desktop/BriefArchives/macOS-Export/Brief.pkg.pkg`
    - Package signature: `3rd Party Mac Developer Installer: Daniel Ensign (PTP9R9BR3L)`.
@@ -112,6 +112,8 @@ Then repeat the smoke test:
 - Confirm the email includes a generated summary instead of the fallback text.
 - Confirm the received link opens the expected page.
 
+Current status: the Anthropic backup is deployed and verified. Google Gemini still returns `API_KEY_SERVICE_BLOCKED`, so keep `ANTHROPIC_API_KEY` configured until Google API access is fixed.
+
 ## Current Release Notes
 
 Use these notes for the App Store version update:
@@ -180,9 +182,20 @@ cd /Users/densign/Documents/Coding-Projects/brief-app/Brief
 fastlane mac build_macos
 ```
 
+### AI Summary smoke test
+
+Status: cleared on May 13, 2026.
+
+- `npx wrangler deploy` succeeded for Worker version `6a48f7ba-6120-4ace-bee9-639408f0f65b`.
+- Live AI-on send to `daniel.ensign@gmail.com` returned `{"success":true}`.
+- Gmail confirmed delivery from `Brief <brief@send-brief.com>` with subject `Example: Brief Final AI Smoke Test - Example Domain`.
+- The email included a generated AI summary instead of `Summary could not be generated for this article.`
+- The email included `https://example.com`, and `https://example.com` returned HTTP 200 during the smoke test.
+- Worker logs still show Gemini `API_KEY_SERVICE_BLOCKED`, so the passing summary came through the deployed Anthropic backup path.
+
 ### Local macOS app smoke test
 
-Status: partially cleared on May 13, 2026.
+Status: cleared for local launch, no-AI sends, share extension, and backend AI summary delivery on May 13, 2026.
 
 - Xcode refreshed the Brief development provisioning profiles and this Mac is now included in both the app and share-extension development profiles.
 - The local macOS Debug build launches successfully.
@@ -192,10 +205,9 @@ Status: partially cleared on May 13, 2026.
 - The macOS share extension is registered with `com.apple.share-services` and the embedded extension is signed with the Brief app group.
 - Safari's Share menu opens the Brief share extension, pre-fills the Example.com title and URL, and a no-AI share-extension send delivered from `Brief <brief@send-brief.com>`.
 - AI Summary consent copy appears before enabling the feature.
-- AI-on sends currently deliver but fall back to `Summary could not be generated for this article.` because the live Worker `GOOGLE_API_KEY` cannot call the Generative Language API and the Anthropic backup path has not yet been deployed. Fix Google API access or deploy the backup path, then repeat the AI-on smoke check before App Store submission.
+- Live backend AI-on smoke now delivers a generated summary through the Anthropic backup path.
 
 ## Known Blockers
 
 - App Store upload/submission should wait for approval because it touches App Store Connect.
-- The live Worker `GOOGLE_API_KEY` currently cannot call the Generative Language API, so AI summaries fall back until Google API access is fixed or the Anthropic backup path is deployed and verified.
-- Manual smoke checks still remaining before submission: repeat an AI-on send with a generated summary and confirm the received link opens correctly.
+- The live Worker `GOOGLE_API_KEY` currently cannot call the Generative Language API. This should be fixed after release, but AI summaries are not blocked while the verified Anthropic backup remains configured.
