@@ -17,6 +17,10 @@ Current release candidate:
 4. Confirm Xcode has the needed platforms installed.
    - macOS release builds are currently verified.
    - iOS simulator release builds are currently verified with iOS 26.4.1.
+5. Confirm the backend Worker is deployed and verified after the Cloudflare Email Sending switch.
+   - `send-brief.com` must be onboarded in Cloudflare Email Sending.
+   - The Worker must have the `EMAIL` Send Email binding from `brief-api/wrangler.jsonc`.
+   - A real Brief send should deliver from `brief@send-brief.com`.
 
 ## Local Verification
 
@@ -26,6 +30,7 @@ Run these checks before creating an App Store archive:
 cd /Users/densign/Documents/Coding-Projects/brief-app/brief-api
 npm test
 npm audit
+npx wrangler deploy --dry-run
 ```
 
 ```sh
@@ -42,6 +47,13 @@ xcodebuild -project Brief/Brief.xcodeproj -scheme "Brief (iOS)" -configuration R
 ```
 
 ## Mac App Store Upload
+
+Before uploading the app, deploy and smoke-test the Worker after explicit approval:
+
+```sh
+cd /Users/densign/Documents/Coding-Projects/brief-app/brief-api
+npx wrangler deploy
+```
 
 Use this first if you want a local signed package without uploading:
 
@@ -68,6 +80,7 @@ Use these notes for the App Store version update:
 Reliability improvements for saving and sharing links:
 - Safer handling of article text and AI summaries before email delivery.
 - More reliable web-link validation in the app and share extensions.
+- More reliable email delivery infrastructure.
 - Better timeout handling and clearer send failures from share sheets.
 ```
 
@@ -79,8 +92,10 @@ Before submitting for review:
 - Send with AI Summary off.
 - Send with AI Summary on, confirming the consent copy still appears when needed.
 - Confirm the received email opens the correct link.
+- Confirm the received email is sent through the deployed Cloudflare Worker from `brief@send-brief.com`.
 
 ## Known Blockers
 
 - App Store upload/submission should wait for approval because it touches App Store Connect.
+- Worker deploy should wait for approval because it changes the live email delivery path.
 - Local macOS archive succeeds, but App Store package export currently fails because this Mac is missing the required `Mac Installer Distribution` signing certificate. Xcode also reports stale/missing Apple account credentials in Keychain during export. Resolve signing in Xcode/App Store Connect before running `fastlane mac release_macos`.
