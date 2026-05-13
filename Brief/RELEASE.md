@@ -16,7 +16,7 @@ Current release candidate:
    `~/.appstoreconnect/private_keys/AuthKey_PAQ942SRH8.p8`
 4. Confirm Xcode has the needed platforms installed.
    - macOS release builds are currently verified.
-   - iOS builds are blocked until Xcode has the iOS 26.4 platform installed.
+   - iOS simulator release builds are currently verified with iOS 26.4.1.
 
 ## Local Verification
 
@@ -38,6 +38,7 @@ npm audit
 cd /Users/densign/Documents/Coding-Projects/brief-app
 git diff --check
 xcodebuild -project Brief/Brief.xcodeproj -scheme "Brief (macOS)" -configuration Release -destination "generic/platform=macOS" CODE_SIGNING_ALLOWED=NO build
+xcodebuild -project Brief/Brief.xcodeproj -scheme "Brief (iOS)" -configuration Release -destination "platform=iOS Simulator,name=iPhone 17,OS=26.4.1" CODE_SIGNING_ALLOWED=NO build
 ```
 
 ## Mac App Store Upload
@@ -74,5 +75,4 @@ Before submitting for review:
 
 ## Known Blockers
 
-- iOS command-line builds cannot be verified on this machine until the iOS 26.4 platform is installed in Xcode.
 - App Store upload/submission should wait for approval because it touches App Store Connect.

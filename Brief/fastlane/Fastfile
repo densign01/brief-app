@@ -25,7 +25,9 @@ platform :ios do
   desc "Build and upload iOS"
   lane :release_ios do
     build_app(
+      project: "Brief.xcodeproj",
       scheme: "Brief (iOS)",
+      clean: true,
       export_method: "app-store",
       output_directory: File.expand_path("~/Desktop/BriefArchives/iOS-Export"),
       output_name: "Brief.ipa"
@@ -50,7 +52,9 @@ platform :mac do
   desc "Build and upload macOS"
   lane :release_macos do
     build_app(
+      project: "Brief.xcodeproj",
       scheme: "Brief (macOS)",
+      clean: true,
       export_method: "app-store",
       output_directory: File.expand_path("~/Desktop/BriefArchives/macOS-Export"),
       output_name: "Brief.pkg"
