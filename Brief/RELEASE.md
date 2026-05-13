@@ -21,6 +21,7 @@ Current release candidate:
    - `send-brief.com` must be onboarded in Cloudflare Email Sending.
    - The Worker must have the `EMAIL` Send Email binding from `brief-api/wrangler.jsonc`.
    - A real Brief send should deliver from `brief@send-brief.com`.
+   - AI Summary checks need a renewed `GOOGLE_API_KEY` Worker secret; the current live key is expired.
 6. Confirm the Mac App Store package export succeeds.
    - Current verified package: `/Users/densign/Desktop/BriefArchives/macOS-Export/Brief.pkg.pkg`
    - Package signature: `3rd Party Mac Developer Installer: Daniel Ensign (PTP9R9BR3L)`.
@@ -151,8 +152,22 @@ cd /Users/densign/Documents/Coding-Projects/brief-app/Brief
 fastlane mac build_macos
 ```
 
+### Local macOS app smoke test
+
+Status: partially cleared on May 13, 2026.
+
+- Xcode refreshed the Brief development provisioning profiles and this Mac is now included in both the app and share-extension development profiles.
+- The local macOS Debug build launches successfully.
+- Settings shows the saved email `daniel.ensign@gmail.com`.
+- A no-AI send from the local macOS app delivered from `Brief <brief@send-brief.com>` with subject `Example: Example Domain`.
+- History shows the new `Example Domain` sent item.
+- The macOS share extension is registered with `com.apple.share-services` and the embedded extension is signed with the Brief app group.
+- Safari's Share menu opens the Brief share extension, pre-fills the Example.com title and URL, and a no-AI share-extension send delivered from `Brief <brief@send-brief.com>`.
+- AI Summary consent copy appears before enabling the feature.
+- AI-on sends currently deliver but fall back to `Summary could not be generated for this article.` because the live Worker `GOOGLE_API_KEY` is expired. Renew the key, update the Worker secret, and repeat the AI-on smoke check before App Store submission.
+
 ## Known Blockers
 
 - App Store upload/submission should wait for approval because it touches App Store Connect.
-- Local macOS launch smoke testing currently needs Xcode to register/refresh this Mac for the Brief development provisioning profile.
-- Manual smoke checks are still recommended before submission: open Brief on macOS, share a Safari page, send with AI Summary off, send with AI Summary on, confirm links open correctly, and confirm emails come from `brief@send-brief.com`.
+- The live Worker `GOOGLE_API_KEY` is expired, so AI summaries fall back instead of generating Gemini summaries.
+- Manual smoke checks still remaining before submission: renew the Google key, repeat an AI-on send with a generated summary, and confirm the received link opens correctly.
