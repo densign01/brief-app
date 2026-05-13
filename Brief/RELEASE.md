@@ -94,6 +94,45 @@ Before submitting for review:
 - Confirm the received email opens the correct link.
 - Confirm the received email is sent through the deployed Cloudflare Worker from `brief@send-brief.com`.
 
+## Clearing Current Blockers
+
+### Cloudflare Email Sending deploy
+
+If `npx wrangler deploy` fails because of missing email permissions:
+
+```sh
+cd /Users/densign/Documents/Coding-Projects/brief-app/brief-api
+npx wrangler login
+npx wrangler whoami
+npx wrangler deploy --dry-run
+```
+
+Continue only when the dry run shows:
+
+```text
+env.EMAIL ... Send Email
+```
+
+Also confirm `send-brief.com` is onboarded in Cloudflare Email Sending before deploying.
+
+### Mac App Store package export
+
+The local Mac currently has Apple Development, Apple Distribution, and Developer ID Application certificates, but it does not have a Mac installer certificate.
+
+To clear the package export blocker:
+
+1. Open Xcode Settings > Accounts.
+2. Select the `PTP9R9BR3L` team.
+3. Open Manage Certificates.
+4. Create or download a `Mac Installer Distribution` certificate.
+5. Re-run:
+
+```sh
+security find-certificate -a -c "Mac Installer" -Z
+cd /Users/densign/Documents/Coding-Projects/brief-app/Brief
+fastlane mac build_macos
+```
+
 ## Known Blockers
 
 - App Store upload/submission should wait for approval because it touches App Store Connect.
