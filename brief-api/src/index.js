@@ -34,7 +34,13 @@ const EMAIL_FROM = {
 };
 
 const GEMINI_MODEL = 'gemini-2.0-flash';
-const ANTHROPIC_MODEL = 'claude-3-5-haiku-20241022';
+const ANTHROPIC_MODELS = [
+	'claude-3-5-haiku-20241022',
+	'claude-3-5-haiku-latest',
+	'claude-3-haiku-20240307',
+	'claude-sonnet-4-20250514',
+	'claude-3-5-sonnet-20241022',
+];
 
 function buildEmailSubject(site, title) {
 	const siteName = getWebsiteName(site).replace(/[\r\n]+/g, ' ').trim();
@@ -145,31 +151,38 @@ async function generateWithGemini(env, prompt, maxOutputTokens, providerContext)
 }
 
 async function generateWithAnthropic(env, prompt, maxOutputTokens, providerContext) {
-	const response = await fetch('https://api.anthropic.com/v1/messages', {
-		method: 'POST',
-		headers: {
-			'x-api-key': env.ANTHROPIC_API_KEY,
-			'anthropic-version': '2023-06-01',
-			'content-type': 'application/json',
-		},
-		body: JSON.stringify({
-			model: ANTHROPIC_MODEL,
-			max_tokens: maxOutputTokens,
-			messages: [
-				{ role: 'user', content: prompt },
-			],
-		}),
-	});
+	let lastError = null;
 
-	if (!response.ok) {
-		const error = await response.text();
-		console.error(`Anthropic API error${providerContext}:`, error);
-		throw new Error(`Anthropic API error: ${response.status}`);
+	for (const model of ANTHROPIC_MODELS) {
+		const response = await fetch('https://api.anthropic.com/v1/messages', {
+			method: 'POST',
+			headers: {
+				'x-api-key': env.ANTHROPIC_API_KEY,
+				'anthropic-version': '2023-06-01',
+				'content-type': 'application/json',
+			},
+			body: JSON.stringify({
+				model,
+				max_tokens: maxOutputTokens,
+				messages: [
+					{ role: 'user', content: prompt },
+				],
+			}),
+		});
+
+		if (!response.ok) {
+			const error = await response.text();
+			lastError = new Error(`Anthropic API error: ${response.status}`);
+			console.error(`Anthropic API error${providerContext} (${model}):`, error);
+			continue;
+		}
+
+		const result = await response.json();
+		const textPart = result.content?.find(part => part?.type === 'text' && part.text);
+		return textPart?.text?.trim() || null;
 	}
 
-	const result = await response.json();
-	const textPart = result.content?.find(part => part?.type === 'text' && part.text);
-	return textPart?.text?.trim() || null;
+	throw lastError || new Error('Anthropic API error');
 }
 
 export default {

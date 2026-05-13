@@ -255,6 +255,78 @@ test('uses Anthropic backup when Gemini rejects AI summary generation', async (t
 	assert.equal(text.includes('Summary could not be generated'), false);
 });
 
+test('tries the next Anthropic model when the first backup model is unavailable', async (t) => {
+	const emailMessages = [];
+	const longArticleText = 'This is article content. '.repeat(80);
+	const anthropicModels = [];
+
+	const originalError = console.error;
+	console.error = () => {};
+	t.after(() => {
+		console.error = originalError;
+	});
+
+	stubFetch(t, async (input, init = {}) => {
+		const target = typeof input === 'string' ? input : input.toString();
+
+		if (target === 'https://example.com/article') {
+			return new Response(`<html><body>${longArticleText}</body></html>`);
+		}
+
+		if (target.startsWith('https://generativelanguage.googleapis.com/')) {
+			return new Response(JSON.stringify({
+				error: {
+					message: 'API key expired. Please renew the API key.',
+				},
+			}), { status: 400 });
+		}
+
+		if (target === 'https://api.anthropic.com/v1/messages') {
+			const body = JSON.parse(init.body);
+			anthropicModels.push(body.model);
+
+			if (body.model === 'claude-3-5-haiku-20241022') {
+				return new Response(JSON.stringify({
+					type: 'error',
+					error: {
+						type: 'not_found_error',
+						message: 'model: claude-3-5-haiku-20241022',
+					},
+				}), { status: 404 });
+			}
+
+			return new Response(JSON.stringify({
+				content: [{
+					type: 'text',
+					text: '- Backup summary from second Anthropic model',
+				}],
+			}));
+		}
+
+		throw new Error(`Unexpected fetch: ${target}`);
+	});
+
+	const response = await worker.fetch(post({
+		url: 'https://example.com/article',
+		title: 'Safe title',
+		email: 'reader@example.com',
+		aiSummary: true,
+		summaryLength: 'short',
+	}), createEnv(emailMessages, {
+		ANTHROPIC_API_KEY: 'test-anthropic-key',
+	}), {});
+	const body = await readJSON(response);
+
+	assert.equal(response.status, 200);
+	assert.equal(body.success, true);
+	assert.deepEqual(anthropicModels, [
+		'claude-3-5-haiku-20241022',
+		'claude-3-5-haiku-latest',
+	]);
+	assert.equal(emailMessages.length, 1);
+	assert.match(String(emailMessages[0].html), /Backup summary from second Anthropic model/);
+});
+
 test('uses Anthropic backup for title-based summary when article content is inaccessible', async (t) => {
 	const emailMessages = [];
 	let geminiCalls = 0;

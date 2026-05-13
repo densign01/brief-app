@@ -89,7 +89,7 @@ Expected output artifact:
 
 If AI-on sends deliver with `Summary could not be generated for this article.`, check the Worker logs before submitting to the App Store. Known Gemini failures include an expired key (`API key expired. Please renew the API key.`) or a key/project restriction that blocks the Generative Language API (`API_KEY_SERVICE_BLOCKED`).
 
-The Worker tries Google Gemini first. If Gemini fails and `ANTHROPIC_API_KEY` is configured, it tries Anthropic before falling back to the "Summary could not be generated" email text.
+The Worker tries Google Gemini first. If Gemini fails and `ANTHROPIC_API_KEY` is configured, it tries Anthropic before falling back to the "Summary could not be generated" email text. The Anthropic backup tries a short list of official Claude model names so one unavailable model does not break the backup path.
 
 After renewing the Google Gemini key, update the live Worker secret only after an explicit approval checkpoint:
 
