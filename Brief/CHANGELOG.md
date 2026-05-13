@@ -1,6 +1,15 @@
 # Changelog
 
-All notable changes to the Brief iOS app.
+All notable changes to the Brief app.
+
+## [1.2] - 2026-05-13
+
+### Reliability
+- Hardened backend email generation against unsafe article and summary text.
+- Removed stale duplicate Worker entry points so `brief-api/src/index.js` is the single backend owner.
+- Added real backend and web smoke tests for the current Gemini-based flow.
+- Added stricter web-link validation, request timeouts, and share-extension send error recovery for iOS and macOS.
+- Prepared the next App Store update as version 1.2 build 6.
 
 ## [1.1] - 2026-02-11
 
