@@ -105,6 +105,8 @@ Before submitting for review:
 - Confirm the received email opens the correct link.
 - Confirm the received email is sent through the deployed Cloudflare Worker from `brief@send-brief.com`.
 
+If a local macOS launch fails with `Provisioning profile does not allow this device`, Xcode needs to register this Mac for the `com.danielensign.Brief` development profile and refresh provisioning. Do that only after an explicit approval checkpoint because it changes Apple developer account state.
+
 ## Cleared Release Gates
 
 ### Cloudflare Email Sending deploy
@@ -152,4 +154,5 @@ fastlane mac build_macos
 ## Known Blockers
 
 - App Store upload/submission should wait for approval because it touches App Store Connect.
+- Local macOS launch smoke testing currently needs Xcode to register/refresh this Mac for the Brief development provisioning profile.
 - Manual smoke checks are still recommended before submission: open Brief on macOS, share a Safari page, send with AI Summary off, send with AI Summary on, confirm links open correctly, and confirm emails come from `brief@send-brief.com`.
