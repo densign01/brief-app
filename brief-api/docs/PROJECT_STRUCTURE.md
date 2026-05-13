@@ -145,7 +145,8 @@ Generate HTML email → Send via Cloudflare Email Sending → Return success/err
 ### Backend Secrets (Cloudflare Workers)
 ```bash
 EMAIL               # Cloudflare Email Sending binding
-GOOGLE_API_KEY   # AI summary generation
+GOOGLE_API_KEY      # Primary AI summary generation
+ANTHROPIC_API_KEY   # Optional backup AI summary generation
 ```
 
 ### Frontend Configuration (Optional)

@@ -48,11 +48,13 @@ python -m http.server 8000
 ### Environment Configuration
 Create necessary API keys for testing:
 - Cloudflare Email Sending enabled for the sending domain
-- Google Gemini API key (for AI summary testing)
+- Google Gemini API key (primary AI summary provider)
+- Anthropic API key (optional backup AI summary provider)
 
 ```bash
 # Set up Worker secrets for local testing
 wrangler secret put GOOGLE_API_KEY
+wrangler secret put ANTHROPIC_API_KEY
 ```
 
 ## 🛠️ Making Changes

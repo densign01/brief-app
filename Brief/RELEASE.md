@@ -21,7 +21,8 @@ Current release candidate:
    - `send-brief.com` must be onboarded in Cloudflare Email Sending.
    - The Worker must have the `EMAIL` Send Email binding from `brief-api/wrangler.jsonc`.
    - A real Brief send should deliver from `brief@send-brief.com`.
-   - AI Summary checks need a renewed `GOOGLE_API_KEY` Worker secret; the current live key is expired.
+   - AI Summary uses Gemini first and Anthropic as a backup if `ANTHROPIC_API_KEY` is configured.
+   - The current live Worker still needs either a usable `GOOGLE_API_KEY` with Generative Language API access or the Anthropic backup code deployed and smoke-tested.
 6. Confirm the Mac App Store package export succeeds.
    - Current verified package: `/Users/densign/Desktop/BriefArchives/macOS-Export/Brief.pkg.pkg`
    - Package signature: `3rd Party Mac Developer Installer: Daniel Ensign (PTP9R9BR3L)`.
@@ -84,15 +85,24 @@ fastlane mac release_macos
 Expected output artifact:
 - `~/Desktop/BriefArchives/macOS-Export/Brief.pkg.pkg`
 
-## AI Summary Key Recovery
+## AI Summary Provider Recovery
 
-If AI-on sends deliver with `Summary could not be generated for this article.`, check the Worker logs before submitting to the App Store. The current known failure is an expired Gemini key: `API key expired. Please renew the API key.`
+If AI-on sends deliver with `Summary could not be generated for this article.`, check the Worker logs before submitting to the App Store. Known Gemini failures include an expired key (`API key expired. Please renew the API key.`) or a key/project restriction that blocks the Generative Language API (`API_KEY_SERVICE_BLOCKED`).
+
+The Worker tries Google Gemini first. If Gemini fails and `ANTHROPIC_API_KEY` is configured, it tries Anthropic before falling back to the "Summary could not be generated" email text.
 
 After renewing the Google Gemini key, update the live Worker secret only after an explicit approval checkpoint:
 
 ```sh
 cd /Users/densign/Documents/Coding-Projects/brief-app/brief-api
 npx wrangler secret put GOOGLE_API_KEY
+```
+
+If using the Anthropic backup, confirm this secret exists before deploying the backup path:
+
+```sh
+cd /Users/densign/Documents/Coding-Projects/brief-app/brief-api
+npx wrangler secret list
 ```
 
 Then repeat the smoke test:
@@ -182,10 +192,10 @@ Status: partially cleared on May 13, 2026.
 - The macOS share extension is registered with `com.apple.share-services` and the embedded extension is signed with the Brief app group.
 - Safari's Share menu opens the Brief share extension, pre-fills the Example.com title and URL, and a no-AI share-extension send delivered from `Brief <brief@send-brief.com>`.
 - AI Summary consent copy appears before enabling the feature.
-- AI-on sends currently deliver but fall back to `Summary could not be generated for this article.` because the live Worker `GOOGLE_API_KEY` is expired. Renew the key, update the Worker secret, and repeat the AI-on smoke check before App Store submission.
+- AI-on sends currently deliver but fall back to `Summary could not be generated for this article.` because the live Worker `GOOGLE_API_KEY` cannot call the Generative Language API and the Anthropic backup path has not yet been deployed. Fix Google API access or deploy the backup path, then repeat the AI-on smoke check before App Store submission.
 
 ## Known Blockers
 
 - App Store upload/submission should wait for approval because it touches App Store Connect.
-- The live Worker `GOOGLE_API_KEY` is expired, so AI summaries fall back instead of generating Gemini summaries.
-- Manual smoke checks still remaining before submission: renew the Google key, repeat an AI-on send with a generated summary, and confirm the received link opens correctly.
+- The live Worker `GOOGLE_API_KEY` currently cannot call the Generative Language API, so AI summaries fall back until Google API access is fixed or the Anthropic backup path is deployed and verified.
+- Manual smoke checks still remaining before submission: repeat an AI-on send with a generated summary and confirm the received link opens correctly.

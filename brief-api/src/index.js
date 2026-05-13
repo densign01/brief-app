@@ -33,6 +33,9 @@ const EMAIL_FROM = {
 	name: 'Brief',
 };
 
+const GEMINI_MODEL = 'gemini-2.0-flash';
+const ANTHROPIC_MODEL = 'claude-3-5-haiku-20241022';
+
 function buildEmailSubject(site, title) {
 	const siteName = getWebsiteName(site).replace(/[\r\n]+/g, ' ').trim();
 	const cleanTitle = String(title || 'Saved link').replace(/[\r\n]+/g, ' ').trim();
@@ -89,6 +92,84 @@ async function sendEmail(env, message) {
 		}));
 		throw new Error(error?.message || 'Failed to send email');
 	}
+}
+
+async function generateAIText(env, prompt, maxOutputTokens, contextLabel) {
+	const providerContext = contextLabel ? ` (${contextLabel})` : '';
+
+	if (env.GOOGLE_API_KEY) {
+		try {
+			return await generateWithGemini(env, prompt, maxOutputTokens, providerContext);
+		} catch (error) {
+			console.error(`Gemini summary generation error${providerContext}:`, error);
+		}
+	}
+
+	if (env.ANTHROPIC_API_KEY) {
+		try {
+			return await generateWithAnthropic(env, prompt, maxOutputTokens, providerContext);
+		} catch (error) {
+			console.error(`Anthropic summary generation error${providerContext}:`, error);
+		}
+	}
+
+	return null;
+}
+
+async function generateWithGemini(env, prompt, maxOutputTokens, providerContext) {
+	const response = await fetch(
+		`https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`,
+		{
+			method: 'POST',
+			headers: {
+				'x-goog-api-key': env.GOOGLE_API_KEY,
+				'Content-Type': 'application/json',
+			},
+			body: JSON.stringify({
+				contents: [{ parts: [{ text: prompt }] }],
+				generationConfig: {
+					maxOutputTokens,
+				},
+			}),
+		}
+	);
+
+	if (!response.ok) {
+		const error = await response.text();
+		console.error(`Gemini API error${providerContext}:`, error);
+		throw new Error(`Gemini API error: ${response.status}`);
+	}
+
+	const result = await response.json();
+	return result.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || null;
+}
+
+async function generateWithAnthropic(env, prompt, maxOutputTokens, providerContext) {
+	const response = await fetch('https://api.anthropic.com/v1/messages', {
+		method: 'POST',
+		headers: {
+			'x-api-key': env.ANTHROPIC_API_KEY,
+			'anthropic-version': '2023-06-01',
+			'content-type': 'application/json',
+		},
+		body: JSON.stringify({
+			model: ANTHROPIC_MODEL,
+			max_tokens: maxOutputTokens,
+			messages: [
+				{ role: 'user', content: prompt },
+			],
+		}),
+	});
+
+	if (!response.ok) {
+		const error = await response.text();
+		console.error(`Anthropic API error${providerContext}:`, error);
+		throw new Error(`Anthropic API error: ${response.status}`);
+	}
+
+	const result = await response.json();
+	const textPart = result.content?.find(part => part?.type === 'text' && part.text);
+	return textPart?.text?.trim() || null;
 }
 
 export default {
@@ -463,37 +544,7 @@ Article URL: ${url}
 Content: ${textContent}
 	  `;
 
-		// Use Google Gemini via direct API
-		if (!env.GOOGLE_API_KEY) {
-			throw new Error('Missing GOOGLE_API_KEY');
-		}
-
-		const response = await fetch(
-			`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent`,
-			{
-				method: 'POST',
-				headers: {
-					'x-goog-api-key': env.GOOGLE_API_KEY,
-					'Content-Type': 'application/json',
-				},
-				body: JSON.stringify({
-					contents: [{ parts: [{ text: prompt }] }],
-					generationConfig: {
-						maxOutputTokens: 500,
-					},
-				}),
-			}
-		);
-
-		if (!response.ok) {
-			const error = await response.text();
-			console.error('Gemini API error:', error);
-			throw new Error(`Gemini API error: ${response.status}`);
-		}
-
-		const result = await response.json();
-		const text = result.candidates?.[0]?.content?.parts?.[0]?.text;
-		return text;
+		return await generateAIText(env, prompt, 500, 'article');
 
 	} catch (error) {
 		console.error('Summary generation error:', error);
@@ -671,39 +722,10 @@ FORMAT:
 
 Title: ${title}
 URL: ${url}
-  `;
+	`;
 
 	try {
-		if (!env.GOOGLE_API_KEY) {
-			throw new Error('Missing GOOGLE_API_KEY');
-		}
-
-		const response = await fetch(
-			`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent`,
-			{
-				method: 'POST',
-				headers: {
-					'x-goog-api-key': env.GOOGLE_API_KEY,
-					'Content-Type': 'application/json',
-				},
-				body: JSON.stringify({
-					contents: [{ parts: [{ text: prompt }] }],
-					generationConfig: {
-						maxOutputTokens: 300,
-					},
-				}),
-			}
-		);
-
-		if (!response.ok) {
-			const error = await response.text();
-			console.error('Gemini API error (title-based):', error);
-			throw new Error(`Gemini API error: ${response.status}`);
-		}
-
-		const result = await response.json();
-		const text = result.candidates?.[0]?.content?.parts?.[0]?.text;
-		return text;
+		return await generateAIText(env, prompt, 300, 'title-based');
 
 	} catch (error) {
 		console.error('Title-based summary generation error:', error);

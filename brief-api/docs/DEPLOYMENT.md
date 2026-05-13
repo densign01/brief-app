@@ -41,6 +41,8 @@ Navigate to the API directory and set up secrets:
 cd api/
 wrangler secret put GOOGLE_API_KEY
 # Enter your Google Gemini API key when prompted
+wrangler secret put ANTHROPIC_API_KEY
+# Optional backup if Gemini summary generation fails
 ```
 
 Email delivery uses the Cloudflare `EMAIL` binding configured in `wrangler.jsonc`; there is no separate email provider API key to set.
@@ -150,8 +152,10 @@ Use the deployment steps above for production deployment.
 
 ### Backend Secrets (Cloudflare)
 ```bash
-# Required secrets
+# AI summary secrets
 wrangler secret put GOOGLE_API_KEY
+# Optional backup for AI summaries
+wrangler secret put ANTHROPIC_API_KEY
 ```
 
 ### Frontend Environment Variables (Vercel)

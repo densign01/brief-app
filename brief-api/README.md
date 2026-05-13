@@ -130,7 +130,8 @@ wrangler deploy
 ```
 
 Required environment variables for the Worker:
-- `GOOGLE_API_KEY`: Your Google Gemini API key
+- `GOOGLE_API_KEY`: Primary Google Gemini API key for AI summaries
+- `ANTHROPIC_API_KEY`: Optional backup key used if Gemini summary generation fails
 
 Required Cloudflare bindings:
 - `EMAIL`: Cloudflare Email Sending binding, restricted to `brief@send-brief.com`

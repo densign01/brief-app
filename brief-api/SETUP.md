@@ -80,21 +80,25 @@ Brief now sends email through Cloudflare Email Sending. Before deploying, make s
 3. **Enter your email** → Tap Done
 4. **Check your email** for the article with AI summary
 
-### 4. Configure Google Gemini (Default)
+### 4. Configure AI Summary Providers
 
-The API uses Google Gemini directly by default.
+The API uses Google Gemini first. If `ANTHROPIC_API_KEY` is also configured, the Worker uses Anthropic as a backup when Gemini fails.
 
-- Required secret: `GOOGLE_API_KEY`
+- Primary secret: `GOOGLE_API_KEY`
+- Backup secret: `ANTHROPIC_API_KEY`
 Example:
 ```bash
 wrangler secret put GOOGLE_API_KEY
+wrangler secret put ANTHROPIC_API_KEY
 wrangler deploy
 ```
 
 ## Troubleshooting
 
-### "Missing GOOGLE_API_KEY"
-- Add the `GOOGLE_API_KEY` secret
+### AI summary emails show fallback text
+- Check Worker logs for Gemini or Anthropic provider errors
+- Renew `GOOGLE_API_KEY` if Gemini reports an expired key
+- Add or renew `ANTHROPIC_API_KEY` if you want automatic backup summary generation
 
 ### "Failed to send email"
 - Check that Cloudflare Email Sending is enabled for `send-brief.com`
