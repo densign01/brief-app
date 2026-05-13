@@ -84,6 +84,24 @@ fastlane mac release_macos
 Expected output artifact:
 - `~/Desktop/BriefArchives/macOS-Export/Brief.pkg.pkg`
 
+## AI Summary Key Recovery
+
+If AI-on sends deliver with `Summary could not be generated for this article.`, check the Worker logs before submitting to the App Store. The current known failure is an expired Gemini key: `API key expired. Please renew the API key.`
+
+After renewing the Google Gemini key, update the live Worker secret only after an explicit approval checkpoint:
+
+```sh
+cd /Users/densign/Documents/Coding-Projects/brief-app/brief-api
+npx wrangler secret put GOOGLE_API_KEY
+```
+
+Then repeat the smoke test:
+- Open the local macOS app.
+- Confirm the AI Summary consent copy appears if consent has not already been accepted.
+- Send a normal article with AI Summary on.
+- Confirm the email includes a generated summary instead of the fallback text.
+- Confirm the received link opens the expected page.
+
 ## Current Release Notes
 
 Use these notes for the App Store version update:
