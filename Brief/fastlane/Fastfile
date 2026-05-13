@@ -1,0 +1,60 @@
+# Fastfile for Brief app
+
+default_platform(:ios)
+
+# API Key configuration
+api_key = app_store_connect_api_key(
+  key_id: "PAQ942SRH8",
+  issuer_id: "0eeb23de-a487-4bdb-af96-0963eca56db7",
+  key_filepath: File.expand_path("~/.appstoreconnect/private_keys/AuthKey_PAQ942SRH8.p8"),
+  in_house: false
+)
+
+platform :ios do
+  desc "Upload iOS build to App Store Connect"
+  lane :upload_ios do
+    upload_to_app_store(
+      api_key: api_key,
+      skip_screenshots: true,
+      skip_metadata: true,
+      ipa: File.expand_path("~/Desktop/BriefArchives/iOS-Export/Brief.ipa"),
+      force: true
+    )
+  end
+
+  desc "Build and upload iOS"
+  lane :release_ios do
+    build_app(
+      scheme: "Brief (iOS)",
+      export_method: "app-store",
+      output_directory: File.expand_path("~/Desktop/BriefArchives/iOS-Export"),
+      output_name: "Brief.ipa"
+    )
+    upload_ios
+  end
+end
+
+platform :mac do
+  desc "Upload macOS build to App Store Connect"
+  lane :upload_macos do
+    upload_to_app_store(
+      api_key: api_key,
+      skip_screenshots: true,
+      skip_metadata: true,
+      pkg: File.expand_path("~/Desktop/BriefArchives/macOS-Export/Brief.pkg"),
+      force: true,
+      platform: "osx"
+    )
+  end
+
+  desc "Build and upload macOS"
+  lane :release_macos do
+    build_app(
+      scheme: "Brief (macOS)",
+      export_method: "app-store",
+      output_directory: File.expand_path("~/Desktop/BriefArchives/macOS-Export"),
+      output_name: "Brief.pkg"
+    )
+    upload_macos
+  end
+end
