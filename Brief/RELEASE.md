@@ -55,6 +55,13 @@ cd /Users/densign/Documents/Coding-Projects/brief-app/brief-api
 npx wrangler deploy
 ```
 
+After the Cloudflare Email Sending path is verified with a real email, remove the old unused Resend secret:
+
+```sh
+cd /Users/densign/Documents/Coding-Projects/brief-app/brief-api
+npx wrangler secret delete RESEND_API_KEY
+```
+
 Use this first if you want a local signed package without uploading:
 
 ```sh
@@ -137,4 +144,5 @@ fastlane mac build_macos
 
 - App Store upload/submission should wait for approval because it touches App Store Connect.
 - Worker deploy should wait for approval because it changes the live email delivery path.
+- Remote Worker secrets currently include the now-unused `RESEND_API_KEY`; remove it only after the Cloudflare Email Sending path is deployed and verified.
 - Local macOS archive succeeds, but App Store package export currently fails because this Mac is missing the required `Mac Installer Distribution` signing certificate. Xcode also reports stale/missing Apple account credentials in Keychain during export. Resolve signing in Xcode/App Store Connect before running `fastlane mac release_macos`.
