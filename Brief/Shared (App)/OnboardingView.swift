@@ -13,6 +13,7 @@ struct OnboardingView: View {
             VStack {
                 TabView(selection: $currentStep) {
                     EmailStepView(email: $email, onContinue: {
+                        email = email.trimmingCharacters(in: .whitespacesAndNewlines)
                         userPreferences.email = email
                         withAnimation { currentStep = 1 }
                     })
@@ -55,6 +56,7 @@ struct OnboardingView: View {
                 Group {
                     if currentStep == 0 {
                         EmailStepView(email: $email, onContinue: {
+                            email = email.trimmingCharacters(in: .whitespacesAndNewlines)
                             userPreferences.email = email
                             withAnimation { currentStep = 1 }
                         })

@@ -75,8 +75,7 @@ class ShareViewController: UIViewController {
                         defer { group.leave() }
                         if let text = data as? String {
                             // Check if it looks like a URL
-                            if let url = URL(string: text.trimmingCharacters(in: .whitespacesAndNewlines)),
-                               self?.isSupportedWebURL(url) == true {
+                            if let url = self?.supportedWebURL(from: text) {
                                 if self?.pageURL.isEmpty == true {
                                     self?.pageURL = url.absoluteString
                                 }
@@ -96,8 +95,7 @@ class ShareViewController: UIViewController {
                         if let dict = data as? [String: Any] {
                             if let urlString = dict[NSExtensionJavaScriptPreprocessingResultsKey] as? [String: Any],
                                let url = urlString["URL"] as? String,
-                               let parsedURL = URL(string: url),
-                               self?.isSupportedWebURL(parsedURL) == true {
+                               let parsedURL = self?.supportedWebURL(from: url) {
                                 self?.pageURL = parsedURL.absoluteString
                             }
                             if let title = dict["title"] as? String {
@@ -134,7 +132,15 @@ class ShareViewController: UIViewController {
         let session = URLSession(configuration: config)
         
         do {
-            let (data, _) = try await session.data(from: url)
+            var request = URLRequest(url: url)
+            request.setValue("text/html,application/xhtml+xml", forHTTPHeaderField: "Accept")
+            request.setValue("bytes=0-131071", forHTTPHeaderField: "Range")
+
+            let (data, response) = try await session.data(for: request)
+            if let httpResponse = response as? HTTPURLResponse,
+               !(200..<400).contains(httpResponse.statusCode) {
+                return
+            }
             guard let html = String(data: data, encoding: .utf8) else { return }
             
             // Try og:title first (most reliable for articles)
@@ -260,6 +266,11 @@ class ShareViewController: UIViewController {
             completion("Please set your email in the Brief app first")
             return
         }
+        let trimmedEmail = email.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard isValidEmail(trimmedEmail) else {
+            completion("Please set a valid email in the Brief app first")
+            return
+        }
 
         let apiEndpoint = defaults?.string(forKey: "apiEndpoint") ?? "https://quickcapture-api.daniel-ensign.workers.dev"
 
@@ -267,7 +278,7 @@ class ShareViewController: UIViewController {
             await performSend(
                 url: sharedURL.absoluteString,
                 title: pageTitle.isEmpty ? sharedURL.host?.replacingOccurrences(of: "www.", with: "") ?? "Shared Link" : pageTitle,
-                email: email,
+                email: trimmedEmail,
                 apiEndpoint: apiEndpoint,
                 context: context,
                 aiSummary: aiSummary,
@@ -357,8 +368,23 @@ class ShareViewController: UIViewController {
     }
 
     private func isSupportedWebURL(_ url: URL) -> Bool {
-        guard let scheme = url.scheme?.lowercased() else { return false }
+        guard let scheme = url.scheme?.lowercased(),
+              let host = url.host,
+              !host.isEmpty else { return false }
         return scheme == "http" || scheme == "https"
+    }
+
+    private func supportedWebURL(from value: String) -> URL? {
+        guard let url = URL(string: value.trimmingCharacters(in: .whitespacesAndNewlines)),
+              isSupportedWebURL(url) else {
+            return nil
+        }
+        return url
+    }
+
+    private func isValidEmail(_ email: String) -> Bool {
+        let pattern = "[A-Z0-9a-z._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,64}"
+        return NSPredicate(format: "SELF MATCHES %@", pattern).evaluate(with: email)
     }
 
     // MARK: - History Management

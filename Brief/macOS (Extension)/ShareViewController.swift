@@ -82,13 +82,13 @@ class ShareViewController: NSViewController {
                     attachment.loadItem(forTypeIdentifier: UTType.url.identifier, options: nil) { [weak self] (data, error) in
                         defer { group.leave() }
                         if let url = data as? URL,
-                           url.scheme == "http" || url.scheme == "https" {
+                           self?.isSupportedWebURL(url) == true {
                             if self?.pageURL.isEmpty == true {
                                 self?.pageURL = url.absoluteString
                             }
                         } else if let urlData = data as? Data,
                                   let url = URL(dataRepresentation: urlData, relativeTo: nil),
-                                  url.scheme == "http" || url.scheme == "https" {
+                                  self?.isSupportedWebURL(url) == true {
                             if self?.pageURL.isEmpty == true {
                                 self?.pageURL = url.absoluteString
                             }
@@ -101,7 +101,8 @@ class ShareViewController: NSViewController {
                     group.enter()
                     attachment.loadItem(forTypeIdentifier: UTType.fileURL.identifier, options: nil) { [weak self] (data, error) in
                         defer { group.leave() }
-                        if let url = data as? URL, url.scheme == "http" || url.scheme == "https" {
+                        if let url = data as? URL,
+                           self?.isSupportedWebURL(url) == true {
                             if self?.pageURL.isEmpty == true {
                                 self?.pageURL = url.absoluteString
                             }
@@ -166,7 +167,15 @@ class ShareViewController: NSViewController {
         let session = URLSession(configuration: config)
 
         do {
-            let (data, _) = try await session.data(from: url)
+            var request = URLRequest(url: url)
+            request.setValue("text/html,application/xhtml+xml", forHTTPHeaderField: "Accept")
+            request.setValue("bytes=0-131071", forHTTPHeaderField: "Range")
+
+            let (data, response) = try await session.data(for: request)
+            if let httpResponse = response as? HTTPURLResponse,
+               !(200..<400).contains(httpResponse.statusCode) {
+                return
+            }
             guard let html = String(data: data, encoding: .utf8) else { return }
             
             // Try og:title first (most reliable for articles)
@@ -285,6 +294,11 @@ class ShareViewController: NSViewController {
             completion("Please set your email in the Brief app first")
             return
         }
+        let trimmedEmail = email.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard isValidEmail(trimmedEmail) else {
+            completion("Please set a valid email in the Brief app first")
+            return
+        }
 
         let apiEndpoint = defaults?.string(forKey: "apiEndpoint") ?? "https://quickcapture-api.daniel-ensign.workers.dev"
 
@@ -292,7 +306,7 @@ class ShareViewController: NSViewController {
             await performSend(
                 url: sharedURL.absoluteString,
                 title: pageTitle.isEmpty ? sharedURL.host?.replacingOccurrences(of: "www.", with: "") ?? "Shared Link" : pageTitle,
-                email: email,
+                email: trimmedEmail,
                 apiEndpoint: apiEndpoint,
                 context: context,
                 aiSummary: aiSummary,
@@ -395,8 +409,15 @@ class ShareViewController: NSViewController {
     }
 
     private func isSupportedWebURL(_ url: URL) -> Bool {
-        guard let scheme = url.scheme?.lowercased() else { return false }
+        guard let scheme = url.scheme?.lowercased(),
+              let host = url.host,
+              !host.isEmpty else { return false }
         return scheme == "http" || scheme == "https"
+    }
+
+    private func isValidEmail(_ email: String) -> Bool {
+        let pattern = "[A-Z0-9a-z._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,64}"
+        return NSPredicate(format: "SELF MATCHES %@", pattern).evaluate(with: email)
     }
 
     // MARK: - History Management

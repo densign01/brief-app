@@ -95,7 +95,7 @@ struct ContentView: View {
                     // Send page
                     ScrollView {
                         VStack(spacing: 24) {
-                            if userPreferences.email.isEmpty {
+                            if !savedEmailIsValid {
                                 setupPrompt
                             }
 
@@ -176,9 +176,9 @@ struct ContentView: View {
     private var sendPage: some View {
         ScrollView {
             VStack(spacing: 24) {
-                if userPreferences.email.isEmpty {
-                    setupPrompt
-                }
+                            if !savedEmailIsValid {
+                                setupPrompt
+                            }
 
                 VStack(spacing: 20) {
                     urlInputSection
@@ -240,7 +240,7 @@ struct ContentView: View {
                     VStack(spacing: 0) {
                         ForEach(Array(userPreferences.sentHistory.enumerated()), id: \.element.id) { index, article in
                             Button(action: {
-                                if let url = URL(string: article.url) {
+                                if let url = supportedWebURL(from: article.url) {
                                     selectedArticleURL = url
                                 }
                             }) {
@@ -305,7 +305,7 @@ struct ContentView: View {
                     VStack(spacing: 0) {
                         ForEach(Array(userPreferences.sentHistory.enumerated()), id: \.element.id) { index, article in
                             Button(action: {
-                                if let url = URL(string: article.url) {
+                                if let url = supportedWebURL(from: article.url) {
                                     selectedArticleURL = url
                                 }
                             }) {
@@ -379,7 +379,7 @@ struct ContentView: View {
                 Text("Set up your email")
                     .font(.headline)
                     .foregroundColor(.primary)
-                Text("Configure where to send your links")
+                Text(userPreferences.email.isEmpty ? "Configure where to send your links" : "Enter a valid email address")
                     .font(.caption)
                     .foregroundColor(.briefSecondaryText)
             }
@@ -588,7 +588,11 @@ struct ContentView: View {
     }
     
     private var canSend: Bool {
-        !url.isEmpty && !title.isEmpty && !userPreferences.email.isEmpty && !isLoading
+        !url.isEmpty && !title.isEmpty && savedEmailIsValid && !isLoading
+    }
+
+    private var savedEmailIsValid: Bool {
+        userPreferences.email.trimmingCharacters(in: .whitespacesAndNewlines).isValidEmail
     }
     
     // MARK: - Tip Section
@@ -711,7 +715,15 @@ struct ContentView: View {
         config.timeoutIntervalForResource = 10
         let session = URLSession(configuration: config)
 
-        let (data, _) = try await session.data(from: url)
+        var request = URLRequest(url: url)
+        request.setValue("text/html,application/xhtml+xml", forHTTPHeaderField: "Accept")
+        request.setValue("bytes=0-131071", forHTTPHeaderField: "Range")
+
+        let (data, response) = try await session.data(for: request)
+        if let httpResponse = response as? HTTPURLResponse,
+           !(200..<400).contains(httpResponse.statusCode) {
+            throw URLError(.badServerResponse)
+        }
         let html = String(data: data, encoding: .utf8) ?? ""
         
         // Try og:title first (most reliable)
@@ -756,13 +768,22 @@ struct ContentView: View {
     }
     
     private func sendArticle() {
-        guard supportedWebURL(from: url) != nil else {
+        guard let articleURL = supportedWebURL(from: url) else {
             alertMessage = "Enter a web link that starts with http:// or https://."
             alertIsSuccess = false
             showingAlert = true
             return
         }
 
+        let email = userPreferences.email.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard email.isValidEmail else {
+            alertMessage = "Enter a valid email address in Settings."
+            alertIsSuccess = false
+            showingAlert = true
+            return
+        }
+
+        url = articleURL.absoluteString
         isLoading = true
         
         let apiService = APIService()
@@ -770,9 +791,9 @@ struct ContentView: View {
         Task {
             do {
                 let success = try await apiService.sendArticle(
-                    url: url,
+                    url: articleURL.absoluteString,
                     title: title,
-                    email: userPreferences.email,
+                    email: email,
                     context: context.isEmpty ? nil : context,
                     aiSummary: userPreferences.aiSummaryEnabled,
                     summaryLength: userPreferences.summaryLength
@@ -782,9 +803,9 @@ struct ContentView: View {
                     isLoading = false
                     if success {
                         // Save to history
-                        userPreferences.addToHistory(url: url, title: title)
+                        userPreferences.addToHistory(url: articleURL.absoluteString, title: title)
 
-                        alertMessage = "Link sent to \(userPreferences.email)"
+                        alertMessage = "Link sent to \(email)"
                         alertIsSuccess = true
                         url = ""
                         title = ""
@@ -809,6 +830,8 @@ struct ContentView: View {
     private func supportedWebURL(from urlString: String) -> URL? {
         guard let parsed = URL(string: urlString.trimmingCharacters(in: .whitespacesAndNewlines)),
               let scheme = parsed.scheme?.lowercased(),
+              let host = parsed.host,
+              !host.isEmpty,
               scheme == "http" || scheme == "https" else {
             return nil
         }
@@ -858,6 +881,13 @@ struct SettingsView: View {
                         Text("Links will be sent to this address")
                             .font(.caption)
                             .foregroundColor(.briefSecondaryText)
+
+                        if !userPreferences.email.isEmpty &&
+                            !userPreferences.email.trimmingCharacters(in: .whitespacesAndNewlines).isValidEmail {
+                            Text("Enter a valid email address before sending.")
+                                .font(.caption)
+                                .foregroundColor(.red)
+                        }
                     }
                     
                     Divider()

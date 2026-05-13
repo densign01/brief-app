@@ -70,7 +70,9 @@ struct APIService {
     }
 
     private static func isSupportedWebURL(_ url: URL) -> Bool {
-        guard let scheme = url.scheme?.lowercased() else { return false }
+        guard let scheme = url.scheme?.lowercased(),
+              let host = url.host,
+              !host.isEmpty else { return false }
         return scheme == "http" || scheme == "https"
     }
 }
