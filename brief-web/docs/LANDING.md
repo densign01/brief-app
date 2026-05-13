@@ -14,7 +14,7 @@ QuickCapture is a **privacy-first web application** that saves articles to your 
 
 ### 🎯 **Key Features**
 - 📧 **Email Integration** - Send articles directly to your inbox
-- 🤖 **AI Summaries** - Powered by Claude 3 Haiku for intelligent insights
+- 🤖 **AI Summaries** - Powered by Google Gemini for intelligent insights
 - 🔒 **Privacy-First** - Your email stays on your device, never stored
 - 🚀 **Lightning Fast** - Built on Cloudflare Workers for global performance
 - 📱 **Mobile Friendly** - Responsive design for all devices
@@ -123,7 +123,7 @@ Receive a beautifully formatted email in seconds with optional AI insights.
 ### **How We Handle Information**
 - **Email Address**: Used only for sending, never stored on servers
 - **Article URLs**: Processed temporarily, not retained
-- **AI Processing**: Content sent to Anthropic API, not logged by us
+- **AI Processing**: Content sent to Google Gemini API, not logged by us
 - **Personal Notes**: Included in email only, not stored anywhere
 
 ---
@@ -143,7 +143,7 @@ Receive a beautifully formatted email in seconds with optional AI insights.
 - 🔄 **Auto-scaling** - Handles traffic spikes automatically
 
 ### **Smart AI Integration**
-- 🧠 **Claude 3 Haiku** - Advanced language model for summaries
+- 🧠 **Google Gemini** - Advanced language model for summaries
 - 🔍 **Content Analysis** - Intelligent article parsing
 - 🛡️ **Paywall Detection** - Graceful handling of restricted content
 - 📊 **Title-based Fallback** - Works even when content is blocked
@@ -261,7 +261,7 @@ QuickCapture was created to solve a real problem: **efficiently building persona
 
 **Made possible by these amazing technologies:**
 - [Cloudflare Workers](https://workers.cloudflare.com/) - Global serverless platform
-- [Anthropic Claude](https://anthropic.com/) - Advanced AI for summaries
+- [Google Gemini](https://ai.google.dev/gemini-api) - Advanced AI for summaries
 - [Resend](https://resend.com/) - Reliable email delivery
 - [Vercel](https://vercel.com/) - Frontend hosting and deployment
 

@@ -1,27 +1,12 @@
 {
-	"name": "quickcapture",
+	"name": "brief-web",
 	"version": "1.0.0",
-	"description": "Quick capture tool with API and frontend",
-	"main": "index.js",
+	"description": "Static web capture UI for Brief",
 	"private": true,
 	"scripts": {
-		"deploy": "wrangler deploy",
-		"dev": "wrangler dev",
-		"start": "wrangler dev",
-		"test": "vitest",
-		"cf-typegen": "wrangler types"
+		"test": "node --test test/*.test.mjs"
 	},
-	"keywords": ["quickcapture", "api", "frontend"],
+	"keywords": ["brief", "frontend", "capture"],
 	"author": "",
-	"license": "ISC",
-  "devDependencies": {
-    "@cloudflare/vitest-pool-workers": "^0.8.19",
-    "typescript": "^5.5.2",
-    "vitest": "~3.2.0",
-    "wrangler": "^4.28.1"
-  },
-  "dependencies": {
-    "ai": "^5.0.26",
-    "@ai-sdk/openai": "^2.0.22"
-  }
+	"license": "ISC"
 }

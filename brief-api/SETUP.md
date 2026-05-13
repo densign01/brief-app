@@ -14,12 +14,12 @@ You need to add your AI provider API keys as secrets:
 ```bash
 cd quickcapture-api
 wrangler secret put RESEND_API_KEY
-wrangler secret put ANTHROPIC_API_KEY
+wrangler secret put GOOGLE_API_KEY
 ```
 
 **Get these keys:**
 - **Resend API Key**: Sign up at [resend.com](https://resend.com) → Dashboard → API Keys → Create
-- **Anthropic API Key**: Sign up at [console.anthropic.com](https://console.anthropic.com) → API Keys → Create
+- **Google Gemini API Key**: Create an API key in [Google AI Studio](https://aistudio.google.com/) for Gemini access
 
 ### 2. Create iOS Shortcut (Simplified!)
 
@@ -80,24 +80,21 @@ wrangler secret put ANTHROPIC_API_KEY
 3. **Enter your email** → Tap Done
 4. **Check your email** for the article with AI summary
 
-### 4. Configure OpenAI (Default)
+### 4. Configure Google Gemini (Default)
 
-The API uses OpenAI via the AI SDK by default.
+The API uses Google Gemini directly by default.
 
-- Required secret: `OPENAI_API_KEY`
-- Optional: `OPENAI_MODEL` (e.g., `gpt-5`, `gpt-4o-mini`)
-
+- Required secret: `GOOGLE_API_KEY`
 Example:
 ```bash
-wrangler secret put OPENAI_API_KEY
-wrangler secret put OPENAI_MODEL # optional
+wrangler secret put GOOGLE_API_KEY
 wrangler deploy
 ```
 
 ## Troubleshooting
 
-### "Missing OPENAI_API_KEY"
-- Add the `OPENAI_API_KEY` secret
+### "Missing GOOGLE_API_KEY"
+- Add the `GOOGLE_API_KEY` secret
 
 ### "Failed to send email"
 - Check that `RESEND_API_KEY` is properly set
@@ -118,7 +115,7 @@ wrangler deploy
 ✅ **AI-powered summaries** (short or long)  
 ✅ **Email delivery** with clean formatting  
 ✅ **Paywall handling** with fallback summaries  
-✅ **Multi-provider AI support** (Anthropic, OpenAI, etc.)  
+✅ **Gemini AI summary support**
 ✅ **Privacy-first** - no data stored on servers  
 
 ## Support

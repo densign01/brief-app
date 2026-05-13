@@ -10,7 +10,7 @@ This guide covers deploying both the frontend and backend components of QuickCap
   - [Vercel](https://vercel.com) (for frontend)
   - [Cloudflare](https://cloudflare.com) (for backend API)
   - [Resend](https://resend.com) (for email delivery)
-  - [Anthropic](https://console.anthropic.com) (for AI summaries)
+  - [Google Gemini](https://aistudio.google.com/) (for AI summaries)
 
 ## API Keys Required
 
@@ -21,8 +21,8 @@ Before deployment, obtain these API keys:
    - Go to API Keys section
    - Create a new API key
 
-2. **Anthropic API Key**
-   - Sign up at [console.anthropic.com](https://console.anthropic.com)
+2. **Google Gemini API Key**
+   - Sign up at [Google AI Studio](https://aistudio.google.com/)
    - Go to API Keys section
    - Create a new API key
 
@@ -47,8 +47,8 @@ cd api/
 wrangler secret put RESEND_API_KEY
 # Enter your Resend API key when prompted
 
-wrangler secret put ANTHROPIC_API_KEY  
-# Enter your Anthropic API key when prompted
+wrangler secret put GOOGLE_API_KEY
+# Enter your Google Gemini API key when prompted
 ```
 
 ### 4. Deploy the Worker
@@ -158,7 +158,7 @@ Use the deployment steps above for production deployment.
 ```bash
 # Required secrets
 wrangler secret put RESEND_API_KEY
-wrangler secret put ANTHROPIC_API_KEY
+wrangler secret put GOOGLE_API_KEY
 
 # Optional: Custom email domain
 wrangler secret put EMAIL_DOMAIN
@@ -235,7 +235,7 @@ wrangler secret list
 - Ensure "from" email domain is verified in Resend
 
 **AI summaries not working:**
-- Verify Anthropic API key
+- Verify Google Gemini API key
 - Check API usage limits
 - Review Worker logs for AI API errors
 
@@ -277,7 +277,7 @@ wrangler dev
 - Monitor bandwidth usage
 
 ### External APIs
-- **Anthropic:** Pay-per-use, monitor token usage
+- **Google Gemini:** Pay-per-use, monitor token usage
 - **Resend:** Free tier includes 3,000 emails/month
 
 ## Updates & Maintenance

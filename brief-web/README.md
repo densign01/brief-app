@@ -1,6 +1,6 @@
 # Brief
 
-Brief is a web application that allows users to save and summarize articles by sending them to their email with optional AI-generated summaries powered by Claude 3 Haiku.
+Brief is a web application that allows users to save and summarize articles by sending them to their email with optional AI-generated summaries powered by Google Gemini.
 
 ## 🚀 Features
 
@@ -62,7 +62,7 @@ Brief is also available as a browser extension! The extension provides the same 
 
 ### Backend (Cloudflare Workers)
 - **Technology**: Cloudflare Workers
-- **AI Model**: Claude 3 Haiku (via Anthropic API)
+- **AI Model**: Gemini 2.0 Flash (via Google Gemini API)
 - **Email Service**: Resend API
 - **Features**:
   - Article content scraping
@@ -131,7 +131,7 @@ wrangler deploy
 
 Required environment variables for the Worker:
 - `RESEND_API_KEY`: Your Resend API key
-- `ANTHROPIC_API_KEY`: Your Anthropic API key
+- `GOOGLE_API_KEY`: Your Google Gemini API key
 
 ## 🎯 Future Enhancements
 
@@ -157,7 +157,7 @@ This project is open source and available under the [MIT License](LICENSE).
 - Your email address is stored only in your browser's local storage
 - No user data is collected or stored on our servers
 - Email addresses are used only for sending article summaries
-- AI processing is handled securely through Anthropic's API
+- AI processing is handled through Google Gemini's API
 
 ## 🛠️ Development
 

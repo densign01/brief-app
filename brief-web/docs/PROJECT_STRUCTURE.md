@@ -84,7 +84,7 @@ getWebsiteName(site)
 ```
 
 **External Integrations:**
-- **Anthropic API** - Claude 3 Haiku for AI summaries
+- **Google Gemini API** - Google Gemini for AI summaries
 - **Resend API** - Email delivery service
 - **Article parsing** - HTTP fetch and HTML parsing
 
@@ -145,7 +145,7 @@ Generate HTML email → Send via Resend → Return success/error
 ### Backend Secrets (Cloudflare Workers)
 ```bash
 RESEND_API_KEY      # Email delivery service
-ANTHROPIC_API_KEY   # AI summary generation
+GOOGLE_API_KEY   # AI summary generation
 ```
 
 ### Frontend Configuration (Optional)

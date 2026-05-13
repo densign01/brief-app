@@ -47,7 +47,7 @@ A: Currently, the email format is standardized for consistency. Custom templates
 ## 🤖 **AI Summaries**
 
 ### **Q: How do AI summaries work?**
-A: QuickCapture uses Claude 3 Haiku to analyze article content and generate intelligent bullet-point summaries. The AI focuses on key insights, main arguments, and important details.
+A: QuickCapture uses Google Gemini to analyze article content and generate intelligent bullet-point summaries. The AI focuses on key insights, main arguments, and important details.
 
 ### **Q: What's the difference between "Short" and "Long" summaries?**
 A: 
@@ -58,7 +58,7 @@ A:
 A: This happens when the article content is behind a paywall or access restriction. QuickCapture automatically falls back to generating insights based on the title and URL context.
 
 ### **Q: How accurate are the AI summaries?**
-A: Claude 3 Haiku provides high-quality summaries, but AI-generated content should always be verified against the original source. Summaries are clearly marked as "AI-generated" in emails.
+A: Google Gemini provides high-quality summaries, but AI-generated content should always be verified against the original source. Summaries are clearly marked as "AI-generated" in emails.
 
 ### **Q: Can I turn off AI summaries?**
 A: Yes! Simply leave the "AI Summary" toggle off when sending articles. You'll receive just the article information and your personal notes.

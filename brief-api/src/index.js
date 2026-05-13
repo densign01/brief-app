@@ -19,6 +19,15 @@ function decodeHTMLEntities(text) {
 	return decoded;
 }
 
+function escapeHTML(value) {
+	return String(value ?? '')
+		.replace(/&/g, '&amp;')
+		.replace(/</g, '&lt;')
+		.replace(/>/g, '&gt;')
+		.replace(/"/g, '&quot;')
+		.replace(/'/g, '&#39;');
+}
+
 export default {
 	async fetch(request, env, ctx) {
 		// Handle CORS
@@ -66,6 +75,34 @@ export default {
 			} catch (error) {
 				return new Response(JSON.stringify({
 					error: 'Invalid URL provided'
+				}), {
+					status: 400,
+					headers: {
+						'Content-Type': 'application/json',
+						'Access-Control-Allow-Origin': '*'
+					}
+				});
+			}
+
+			if (urlObj.protocol !== 'http:' && urlObj.protocol !== 'https:') {
+				return new Response(JSON.stringify({
+					error: 'Only http and https URLs are supported'
+				}), {
+					status: 400,
+					headers: {
+						'Content-Type': 'application/json',
+						'Access-Control-Allow-Origin': '*'
+					}
+				});
+			}
+
+			site = urlObj.hostname;
+
+			// Basic email validation before any outbound fetches
+			const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+			if (!emailRegex.test(email)) {
+				return new Response(JSON.stringify({
+					error: 'Invalid email address format'
 				}), {
 					status: 400,
 					headers: {
@@ -132,20 +169,6 @@ export default {
 			summaryLength = summaryLength || 'short';
 			context = context || '';
 
-			// Basic email validation
-			const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-			if (!emailRegex.test(email)) {
-				return new Response(JSON.stringify({
-					error: 'Invalid email address format'
-				}), {
-					status: 400,
-					headers: {
-						'Content-Type': 'application/json',
-						'Access-Control-Allow-Origin': '*'
-					}
-				});
-			}
-
 			let summaryHTML = '';
 			let parsedContent = { author: '', date: '' };
 
@@ -156,12 +179,16 @@ export default {
 					.split('\n')
 					.map(line => line.trim())
 					.filter(line => line)
+					.map(escapeHTML)
 					.join('<br>');
+
+				const authorName = escapeHTML(tweetContent.authorName);
+				const authorHandle = escapeHTML(tweetContent.authorHandle);
 
 				summaryHTML = `
 			  <div style="margin: 20px 0; padding: 16px 20px; background: #f7f9fa; border-left: 4px solid #1da1f2; border-radius: 4px;">
 				<p style="font-size: 16px; line-height: 1.5; color: #14171a; margin: 0; white-space: pre-wrap;">${tweetTextFormatted}</p>
-				${tweetContent.authorName ? `<p style="margin-top: 12px; color: #657786; font-size: 14px;">— ${tweetContent.authorName}${tweetContent.authorHandle ? ` (@${tweetContent.authorHandle})` : ''}</p>` : ''}
+				${tweetContent.authorName ? `<p style="margin-top: 12px; color: #657786; font-size: 14px;">— ${authorName}${tweetContent.authorHandle ? ` (@${authorHandle})` : ''}</p>` : ''}
 			  </div>
 			`;
 				// Don't set parsedContent.author - it's already shown in the tweet block
@@ -217,19 +244,25 @@ export default {
 			}
 
 			// Generate email HTML
+			const safeTitle = escapeHTML(title);
+			const safeUrl = escapeHTML(url);
+			const safeAuthor = escapeHTML(parsedContent.author);
+			const safeDate = escapeHTML(parsedContent.date);
+			const safeContext = escapeHTML(context);
+
 			const emailHTML = `
 		  <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; max-width: 600px; margin: 0 auto; line-height: 1.6;">
-			<h1 style="font-size: 24px; font-weight: bold; margin: 20px 0; color: #000;">${title}</h1>
+			<h1 style="font-size: 24px; font-weight: bold; margin: 20px 0; color: #000;">${safeTitle}</h1>
 			
 			<div style="margin: 20px 0;">
-			  ${parsedContent.date ? `<div style="color: #666; font-style: italic; margin-bottom: 8px;">${parsedContent.date}</div>` : ''}
-			  ${parsedContent.author ? `<div style="color: #666; font-style: italic; margin-bottom: 8px;">${parsedContent.author}</div>` : ''}
-			  <a href="${url}" style="color: #0066cc; text-decoration: none;">${url}</a>
+			  ${parsedContent.date ? `<div style="color: #666; font-style: italic; margin-bottom: 8px;">${safeDate}</div>` : ''}
+			  ${parsedContent.author ? `<div style="color: #666; font-style: italic; margin-bottom: 8px;">${safeAuthor}</div>` : ''}
+			  <a href="${safeUrl}" style="color: #0066cc; text-decoration: none;">${safeUrl}</a>
 			</div>
 			
 			${context ? `
 			  <div style="border-left: 4px solid #f59e0b; padding: 12px 16px; margin: 20px 0; background: #fffbf0;">
-				<strong style="color: #000;">Note:</strong> ${context}
+				<strong style="color: #000;">Note:</strong> ${safeContext}
 			  </div>
 			` : ''}
 			
@@ -243,7 +276,7 @@ export default {
 
 			// Send email using Resend
 			// Truncate subject to avoid Resend's 2000 char limit (keep it email-friendly at 150 chars)
-			const siteName = getWebsiteName(site);
+			const siteName = getWebsiteName(site).replace(/[\r\n]+/g, ' ').trim();
 			const cleanTitle = title.replace(/[\r\n]+/g, ' ').trim();
 			const maxTitleLength = 150 - siteName.length - 2; // 2 for ": " separator
 			const truncatedTitle = cleanTitle.length > maxTitleLength
@@ -416,7 +449,7 @@ Content: ${textContent}
 }
 
 function markdownToHtml(text) {
-	return text
+	return escapeHTML(text)
 		.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')  // **bold**
 		.replace(/\*(.+?)\*/g, '<em>$1</em>')              // *italic*
 		.replace(/`(.+?)`/g, '<code>$1</code>');           // `code`

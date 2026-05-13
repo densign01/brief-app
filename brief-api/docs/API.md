@@ -123,8 +123,8 @@ When content is inaccessible, the API falls back to generating a title-based sum
 - Acknowledgment of the limitation
 
 ### AI Model
-- **Model**: ChatGPT (configurable via `OPENAI_MODEL`, e.g. `gpt-5` or `gpt-4o-mini`)
-- **Provider**: OpenAI via AI SDK
+- **Model**: Gemini 2.0 Flash
+- **Provider**: Google Gemini via direct API
 - **Max Tokens**: 500 for content-based summaries, 300 for title-based
 - **Focus**: Rich, informative bullet points capturing key insights
 
@@ -170,7 +170,7 @@ Currently no explicit rate limits are enforced, but Cloudflare Workers has built
 The API includes comprehensive error handling for:
 - Invalid or missing request parameters
 - Network failures when fetching articles
-- AI API failures (Anthropic)
+- AI API failures (Google Gemini)
 - Email delivery failures (Resend)
 
 All errors are returned as JSON with descriptive error messages.
@@ -185,7 +185,7 @@ All errors are returned as JSON with descriptive error messages.
 ## Dependencies
 
 The API relies on these external services:
-- **Anthropic API** for AI summary generation
+- **Google Gemini API** for AI summary generation
 - **Resend API** for email delivery
 - **Cloudflare Workers** for hosting and edge computing
 
