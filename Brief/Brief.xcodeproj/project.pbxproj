@@ -88,6 +88,13 @@
 			);
 			target = 81100F3F2E4EB82800512776 /* Brief (iOS) */;
 		};
+		71F904502F01D2500054DBBA /* Exceptions for "macOS (App)" folder in "Brief (macOS)" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 81100F512E4EB82800512776 /* Brief (macOS) */;
+		};
 		81100F972E4EB82800512776 /* Exceptions for "Shared (App)" folder in "Brief (macOS)" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
@@ -133,6 +140,9 @@
 		};
 		81100F532E4EB82800512776 /* macOS (App) */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				71F904502F01D2500054DBBA /* Exceptions for "macOS (App)" folder in "Brief (macOS)" target */,
+			);
 			path = "macOS (App)";
 			sourceTree = "<group>";
 		};

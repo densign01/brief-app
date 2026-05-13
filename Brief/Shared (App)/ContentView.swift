@@ -670,13 +670,22 @@ struct ContentView: View {
     }
     
     private func analyzeURL() {
-        guard !url.isEmpty else { return }
+        let trimmedURL = url.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmedURL.isEmpty else { return }
+        guard let articleURL = supportedWebURL(from: trimmedURL) else {
+            alertMessage = "Enter a web link that starts with http:// or https://."
+            alertIsSuccess = false
+            showingAlert = true
+            return
+        }
+
+        url = articleURL.absoluteString
         
         isLoading = true
         
         Task {
             do {
-                let fetchedTitle = try await fetchArticleTitle(from: url)
+                let fetchedTitle = try await fetchArticleTitle(from: articleURL)
                 await MainActor.run {
                     title = fetchedTitle
                     isLoading = false
@@ -695,11 +704,7 @@ struct ContentView: View {
         }
     }
     
-    private func fetchArticleTitle(from urlString: String) async throws -> String {
-        guard let url = URL(string: urlString) else {
-            throw URLError(.badURL)
-        }
-
+    private func fetchArticleTitle(from url: URL) async throws -> String {
         // Use ephemeral session with timeout to prevent hangs on slow/malicious servers
         let config = URLSessionConfiguration.ephemeral
         config.timeoutIntervalForRequest = 10
@@ -728,7 +733,7 @@ struct ContentView: View {
         }
         
         // Fallback to domain
-        if let urlObj = URL(string: urlString), let host = urlObj.host {
+        if let host = url.host {
             return host.replacingOccurrences(of: "www.", with: "")
         }
         
@@ -751,6 +756,13 @@ struct ContentView: View {
     }
     
     private func sendArticle() {
+        guard supportedWebURL(from: url) != nil else {
+            alertMessage = "Enter a web link that starts with http:// or https://."
+            alertIsSuccess = false
+            showingAlert = true
+            return
+        }
+
         isLoading = true
         
         let apiService = APIService()
@@ -792,6 +804,15 @@ struct ContentView: View {
                 }
             }
         }
+    }
+
+    private func supportedWebURL(from urlString: String) -> URL? {
+        guard let parsed = URL(string: urlString.trimmingCharacters(in: .whitespacesAndNewlines)),
+              let scheme = parsed.scheme?.lowercased(),
+              scheme == "http" || scheme == "https" else {
+            return nil
+        }
+        return parsed
     }
 }
 

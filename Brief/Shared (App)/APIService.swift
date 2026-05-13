@@ -12,12 +12,18 @@ struct APIService {
         
         let endpoint = UserPreferences.shared.apiEndpoint
         
-        guard let apiURL = URL(string: endpoint) else {
+        guard let apiURL = URL(string: endpoint),
+              Self.isSupportedWebURL(apiURL) else {
             throw APIError.invalidURL
+        }
+
+        guard let articleURL = URL(string: url),
+              Self.isSupportedWebURL(articleURL) else {
+            throw APIError.unsupportedURL
         }
         
         // Extract site from URL
-        let site = URL(string: url)?.host ?? ""
+        let site = articleURL.host ?? ""
         
         let requestBody = APIRequest(
             url: url,
@@ -39,7 +45,11 @@ struct APIService {
             throw APIError.encodingError
         }
         
-        let (data, response) = try await URLSession.shared.data(for: request)
+        let config = URLSessionConfiguration.ephemeral
+        config.timeoutIntervalForRequest = 20
+        config.timeoutIntervalForResource = 30
+        let session = URLSession(configuration: config)
+        let (data, response) = try await session.data(for: request)
         
         guard let httpResponse = response as? HTTPURLResponse else {
             throw APIError.invalidResponse
@@ -57,6 +67,11 @@ struct APIService {
             }
             throw APIError.httpError(httpResponse.statusCode)
         }
+    }
+
+    private static func isSupportedWebURL(_ url: URL) -> Bool {
+        guard let scheme = url.scheme?.lowercased() else { return false }
+        return scheme == "http" || scheme == "https"
     }
 }
 
@@ -80,6 +95,7 @@ struct APIErrorResponse: Codable {
 
 enum APIError: LocalizedError {
     case invalidURL
+    case unsupportedURL
     case encodingError
     case invalidResponse
     case httpError(Int)
@@ -89,6 +105,8 @@ enum APIError: LocalizedError {
         switch self {
         case .invalidURL:
             return "Invalid API URL. Please check your settings."
+        case .unsupportedURL:
+            return "Brief can only send web links that start with http:// or https://."
         case .encodingError:
             return "Failed to encode request data."
         case .invalidResponse:

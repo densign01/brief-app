@@ -9,10 +9,10 @@ private extension Color {
 
 /// Shared SwiftUI view for the Share Extension
 /// Works on both iOS and macOS
-struct ShareView: View {
+    struct ShareView: View {
     let url: String
     let pageTitle: String
-    let onSend: (String?, Bool, String) -> Void  // context, aiSummary, summaryLength
+    let onSend: (String?, Bool, String, @escaping (String?) -> Void) -> Void  // context, aiSummary, summaryLength, error completion
     let onCancel: () -> Void
 
     @State private var context = ""
@@ -25,7 +25,7 @@ struct ShareView: View {
 
     private let appGroup = "group.com.danielensign.Brief"
 
-    init(url: String, pageTitle: String, onSend: @escaping (String?, Bool, String) -> Void, onCancel: @escaping () -> Void) {
+    init(url: String, pageTitle: String, onSend: @escaping (String?, Bool, String, @escaping (String?) -> Void) -> Void, onCancel: @escaping () -> Void) {
         self.url = url
         self.pageTitle = pageTitle
         self.onSend = onSend
@@ -87,7 +87,12 @@ struct ShareView: View {
             context.isEmpty ? nil : context,
             aiSummaryEnabled,
             summaryLength
-        )
+        ) { error in
+            if let error {
+                isLoading = false
+                errorMessage = error
+            }
+        }
     }
     
     // MARK: - Header

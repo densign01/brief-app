@@ -61,15 +61,15 @@ class ShareViewController: NSViewController {
             // Try to get URL from userInfo (Safari provides it here)
             if let userInfo = item.userInfo,
                let urlString = userInfo[NSExtensionItemAttributedContentTextKey] as? String,
-               urlString.hasPrefix("http") {
-                pageURL = urlString
+               let url = supportedWebURL(from: urlString) {
+                pageURL = url.absoluteString
             }
             
             // Also check attributedContentText
             if let attributedText = item.attributedContentText?.string,
-               attributedText.hasPrefix("http") {
+               let url = supportedWebURL(from: attributedText) {
                 if pageURL.isEmpty {
-                    pageURL = attributedText
+                    pageURL = url.absoluteString
                 }
             }
             
@@ -115,9 +115,9 @@ class ShareViewController: NSViewController {
                     attachment.loadItem(forTypeIdentifier: UTType.plainText.identifier, options: nil) { [weak self] (data, error) in
                         defer { group.leave() }
                         if let text = data as? String {
-                            if text.hasPrefix("http://") || text.hasPrefix("https://") {
+                            if let url = self?.supportedWebURL(from: text) {
                                 if self?.pageURL.isEmpty == true {
-                                    self?.pageURL = text
+                                    self?.pageURL = url.absoluteString
                                 }
                             } else if self?.pageTitle.isEmpty == true {
                                 // Decode HTML entities (Instagram sends encoded text)
@@ -156,7 +156,8 @@ class ShareViewController: NSViewController {
     }
 
     private func fetchTitleFromURL() async {
-        guard let url = URL(string: pageURL) else { return }
+        guard let url = URL(string: pageURL),
+              isSupportedWebURL(url) else { return }
 
         // Use ephemeral session with timeout to prevent hangs on slow/malicious servers
         let config = URLSessionConfiguration.ephemeral
@@ -250,8 +251,8 @@ class ShareViewController: NSViewController {
         let shareView = ShareView(
             url: pageURL,
             pageTitle: pageTitle,
-            onSend: { [weak self] context, aiSummary, summaryLength in
-                self?.sendArticle(context: context, aiSummary: aiSummary, summaryLength: summaryLength)
+            onSend: { [weak self] context, aiSummary, summaryLength, completion in
+                self?.sendArticle(context: context, aiSummary: aiSummary, summaryLength: summaryLength, completion: completion)
             },
             onCancel: { [weak self] in
                 self?.extensionContext?.completeRequest(returningItems: nil, completionHandler: nil)
@@ -271,11 +272,17 @@ class ShareViewController: NSViewController {
         ])
     }
 
-    private func sendArticle(context: String?, aiSummary: Bool, summaryLength: String) {
+    private func sendArticle(context: String?, aiSummary: Bool, summaryLength: String, completion: @escaping (String?) -> Void) {
+        guard let sharedURL = URL(string: pageURL),
+              isSupportedWebURL(sharedURL) else {
+            completion("Brief can only send web links that start with http:// or https://.")
+            return
+        }
+
         // Get email from shared preferences
         let defaults = UserDefaults(suiteName: appGroup)
         guard let email = defaults?.string(forKey: "email"), !email.isEmpty else {
-            showError("Please set your email in the Brief app first")
+            completion("Please set your email in the Brief app first")
             return
         }
 
@@ -283,13 +290,14 @@ class ShareViewController: NSViewController {
 
         Task {
             await performSend(
-                url: pageURL,
-                title: pageTitle,
+                url: sharedURL.absoluteString,
+                title: pageTitle.isEmpty ? sharedURL.host?.replacingOccurrences(of: "www.", with: "") ?? "Shared Link" : pageTitle,
                 email: email,
                 apiEndpoint: apiEndpoint,
                 context: context,
                 aiSummary: aiSummary,
-                summaryLength: summaryLength
+                summaryLength: summaryLength,
+                completion: completion
             )
         }
     }
@@ -301,11 +309,13 @@ class ShareViewController: NSViewController {
         apiEndpoint: String,
         context: String?,
         aiSummary: Bool,
-        summaryLength: String
+        summaryLength: String,
+        completion: @escaping (String?) -> Void
     ) async {
         do {
-            guard let apiURL = URL(string: apiEndpoint) else {
-                await showErrorOnMain("Invalid API URL")
+            guard let apiURL = URL(string: apiEndpoint),
+                  isSupportedWebURL(apiURL) else {
+                await completeOnMain("Invalid API URL", completion: completion)
                 return
             }
 
@@ -329,7 +339,11 @@ class ShareViewController: NSViewController {
             request.setValue("application/json", forHTTPHeaderField: "Content-Type")
             request.httpBody = try JSONSerialization.data(withJSONObject: requestBody)
 
-            let (data, response) = try await URLSession.shared.data(for: request)
+            let config = URLSessionConfiguration.ephemeral
+            config.timeoutIntervalForRequest = 20
+            config.timeoutIntervalForResource = 30
+            let session = URLSession(configuration: config)
+            let (data, response) = try await session.data(for: request)
 
             if let httpResponse = response as? HTTPURLResponse {
                 if httpResponse.statusCode == 200 {
@@ -341,14 +355,14 @@ class ShareViewController: NSViewController {
                     }
                 } else {
                     let responseBody = String(data: data, encoding: .utf8) ?? "No response body"
-                    await showErrorOnMain("API Error (\(httpResponse.statusCode)): \(responseBody)")
+                    await completeOnMain("API Error (\(httpResponse.statusCode)): \(responseBody)", completion: completion)
                 }
             } else {
-                await showErrorOnMain("Failed to send article")
+                await completeOnMain("Failed to send article", completion: completion)
             }
 
         } catch {
-            await showErrorOnMain("Error: \(error.localizedDescription)")
+            await completeOnMain("Error: \(error.localizedDescription)", completion: completion)
         }
     }
 
@@ -364,6 +378,25 @@ class ShareViewController: NSViewController {
         await MainActor.run {
             showError(message)
         }
+    }
+
+    private func completeOnMain(_ message: String, completion: @escaping (String?) -> Void) async {
+        await MainActor.run {
+            completion(message)
+        }
+    }
+
+    private func supportedWebURL(from value: String) -> URL? {
+        guard let url = URL(string: value.trimmingCharacters(in: .whitespacesAndNewlines)),
+              isSupportedWebURL(url) else {
+            return nil
+        }
+        return url
+    }
+
+    private func isSupportedWebURL(_ url: URL) -> Bool {
+        guard let scheme = url.scheme?.lowercased() else { return false }
+        return scheme == "http" || scheme == "https"
     }
 
     // MARK: - History Management
