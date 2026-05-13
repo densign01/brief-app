@@ -180,6 +180,55 @@ test('escapes AI summary output while preserving simple formatting', async (t) =
 	assert.match(String(emailMessages[0].text), /Important <unsafe> point/);
 });
 
+test('still sends the link with a clear fallback when AI summary generation fails', async (t) => {
+	const emailMessages = [];
+	const longArticleText = 'This is article content. '.repeat(80);
+
+	const originalError = console.error;
+	console.error = () => {};
+	t.after(() => {
+		console.error = originalError;
+	});
+
+	stubFetch(t, async (input) => {
+		const target = typeof input === 'string' ? input : input.toString();
+
+		if (target === 'https://example.com/article') {
+			return new Response(`<html><body>${longArticleText}</body></html>`);
+		}
+
+		if (target.startsWith('https://generativelanguage.googleapis.com/')) {
+			return new Response(JSON.stringify({
+				error: {
+					message: 'API key expired. Please renew the API key.',
+				},
+			}), { status: 400 });
+		}
+
+		throw new Error(`Unexpected fetch: ${target}`);
+	});
+
+	const response = await worker.fetch(post({
+		url: 'https://example.com/article',
+		title: 'Safe title',
+		email: 'reader@example.com',
+		aiSummary: true,
+		summaryLength: 'short',
+	}), createEnv(emailMessages), {});
+	const body = await readJSON(response);
+
+	assert.equal(response.status, 200);
+	assert.equal(body.success, true);
+	assert.equal(emailMessages.length, 1);
+
+	const html = String(emailMessages[0].html);
+	const text = String(emailMessages[0].text);
+	assert.match(html, /Summary could not be generated for this article\./);
+	assert.match(text, /Summary could not be generated for this article\./);
+	assert.equal(html.includes('API key expired'), false);
+	assert.equal(text.includes('API key expired'), false);
+});
+
 test('returns a clear error when Cloudflare email binding is missing', async (t) => {
 	const originalError = console.error;
 	console.error = () => {};
