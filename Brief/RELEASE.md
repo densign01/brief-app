@@ -21,6 +21,10 @@ Current release candidate:
    - `send-brief.com` must be onboarded in Cloudflare Email Sending.
    - The Worker must have the `EMAIL` Send Email binding from `brief-api/wrangler.jsonc`.
    - A real Brief send should deliver from `brief@send-brief.com`.
+6. Confirm the Mac App Store package export succeeds.
+   - Current verified package: `/Users/densign/Desktop/BriefArchives/macOS-Export/Brief.pkg.pkg`
+   - Package signature: `3rd Party Mac Developer Installer: Daniel Ensign (PTP9R9BR3L)`.
+   - App and share extension inside the package are signed with `Apple Distribution: Daniel Ensign (PTP9R9BR3L)`.
 
 ## Local Verification
 
@@ -77,7 +81,7 @@ fastlane mac release_macos
 ```
 
 Expected output artifact:
-- `~/Desktop/BriefArchives/macOS-Export/Brief.pkg`
+- `~/Desktop/BriefArchives/macOS-Export/Brief.pkg.pkg`
 
 ## Current Release Notes
 
@@ -101,11 +105,17 @@ Before submitting for review:
 - Confirm the received email opens the correct link.
 - Confirm the received email is sent through the deployed Cloudflare Worker from `brief@send-brief.com`.
 
-## Clearing Current Blockers
+## Cleared Release Gates
 
 ### Cloudflare Email Sending deploy
 
-If `npx wrangler deploy` fails because of missing email permissions:
+Status: cleared on May 13, 2026.
+
+- `npx wrangler deploy` succeeded for the live Worker.
+- A real email to `daniel.ensign@gmail.com` was delivered from `brief@send-brief.com`.
+- The old unused `RESEND_API_KEY` Worker secret was deleted after verification.
+
+If future deploys fail because of missing email permissions:
 
 ```sh
 cd /Users/densign/Documents/Coding-Projects/brief-app/brief-api
@@ -124,18 +134,17 @@ Also confirm `send-brief.com` is onboarded in Cloudflare Email Sending before de
 
 ### Mac App Store package export
 
-The local Mac currently has Apple Development, Apple Distribution, and Developer ID Application certificates, but it does not have a Mac installer certificate.
+Status: cleared on May 13, 2026.
 
-To clear the package export blocker:
+- Xcode is signed into the Daniel Ensign Apple developer team.
+- `fastlane mac build_macos` succeeded.
+- The signed package was exported to `/Users/densign/Desktop/BriefArchives/macOS-Export/Brief.pkg.pkg`.
+- `pkgutil --check-signature` reports `3rd Party Mac Developer Installer: Daniel Ensign (PTP9R9BR3L)`.
+- The expanded package contains `Brief.app` and `Brief Extension.appex` signed with `Apple Distribution: Daniel Ensign (PTP9R9BR3L)`.
 
-1. Open Xcode Settings > Accounts.
-2. Select the `PTP9R9BR3L` team.
-3. Open Manage Certificates.
-4. Create or download a `Mac Installer Distribution` certificate.
-5. Re-run:
+If this breaks again, first confirm Xcode is signed into the Apple developer team, then re-run:
 
 ```sh
-security find-certificate -a -c "Mac Installer" -Z
 cd /Users/densign/Documents/Coding-Projects/brief-app/Brief
 fastlane mac build_macos
 ```
@@ -143,6 +152,4 @@ fastlane mac build_macos
 ## Known Blockers
 
 - App Store upload/submission should wait for approval because it touches App Store Connect.
-- Worker deploy should wait for approval because it changes the live email delivery path.
-- Remote Worker secrets currently include the now-unused `RESEND_API_KEY`; remove it only after the Cloudflare Email Sending path is deployed and verified.
-- Local macOS archive succeeds, but App Store package export currently fails because this Mac is missing the required `Mac Installer Distribution` signing certificate. Xcode also reports stale/missing Apple account credentials in Keychain during export. Resolve signing in Xcode/App Store Connect before running `fastlane mac release_macos`.
+- Manual smoke checks are still recommended before submission: open Brief on macOS, share a Safari page, send with AI Summary off, send with AI Summary on, confirm links open correctly, and confirm emails come from `brief@send-brief.com`.
