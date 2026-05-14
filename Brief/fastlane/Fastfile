@@ -62,7 +62,8 @@ platform :mac do
       skip_metadata: true,
       pkg: File.expand_path("~/Desktop/BriefArchives/macOS-Export/Brief.pkg"),
       force: true,
-      platform: "osx"
+      platform: "osx",
+      run_precheck_before_submit: false
     )
   end
 
