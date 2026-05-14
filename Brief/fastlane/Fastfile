@@ -50,7 +50,7 @@ platform :mac do
       clean: true,
       export_method: "app-store",
       output_directory: File.expand_path("~/Desktop/BriefArchives/macOS-Export"),
-      output_name: "Brief.pkg"
+      output_name: "Brief"
     )
   end
 

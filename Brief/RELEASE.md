@@ -24,7 +24,7 @@ Current release candidate:
    - AI Summary uses Gemini first and Anthropic as a backup if `ANTHROPIC_API_KEY` is configured.
    - The Anthropic backup path is deployed and smoke-tested. The current `GOOGLE_API_KEY` still cannot call the Generative Language API, but this is not blocking the release while the backup is configured.
 6. Confirm the Mac App Store package export succeeds.
-   - Current verified package: `/Users/densign/Desktop/BriefArchives/macOS-Export/Brief.pkg.pkg`
+   - Current verified package: `/Users/densign/Desktop/BriefArchives/macOS-Export/Brief.pkg`
    - Package signature: `3rd Party Mac Developer Installer: Daniel Ensign (PTP9R9BR3L)`.
    - App and share extension inside the package are signed with `Apple Distribution: Daniel Ensign (PTP9R9BR3L)`.
 
@@ -83,7 +83,7 @@ fastlane mac release_macos
 ```
 
 Expected output artifact:
-- `~/Desktop/BriefArchives/macOS-Export/Brief.pkg.pkg`
+- `~/Desktop/BriefArchives/macOS-Export/Brief.pkg`
 
 ## AI Summary Provider Recovery
 
@@ -171,7 +171,7 @@ Status: cleared on May 13, 2026.
 
 - Xcode is signed into the Daniel Ensign Apple developer team.
 - `fastlane mac build_macos` succeeded.
-- The signed package was exported to `/Users/densign/Desktop/BriefArchives/macOS-Export/Brief.pkg.pkg`.
+- The signed package was exported to `/Users/densign/Desktop/BriefArchives/macOS-Export/Brief.pkg`.
 - `pkgutil --check-signature` reports `3rd Party Mac Developer Installer: Daniel Ensign (PTP9R9BR3L)`.
 - The expanded package contains `Brief.app` and `Brief Extension.appex` signed with `Apple Distribution: Daniel Ensign (PTP9R9BR3L)`.
 
