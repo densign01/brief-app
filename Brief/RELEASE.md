@@ -140,6 +140,18 @@ If a local macOS launch fails with `Provisioning profile does not allow this dev
 
 ## Cleared Release Gates
 
+### Mac App Store upload and submission
+
+Status: submitted for review on May 13, 2026.
+
+- `fastlane mac build_macos` produced `/Users/densign/Desktop/BriefArchives/macOS-Export/Brief.pkg`.
+- `pkgutil --check-signature` confirmed the package is signed by `3rd Party Mac Developer Installer: Daniel Ensign (PTP9R9BR3L)`.
+- `fastlane mac upload_macos` uploaded build `6` for version `1.2` to App Store Connect.
+- App Store Connect reported build `6` as `VALID`.
+- The `en-US` "What's New" field was set to the release notes above.
+- `fastlane mac submit_macos` selected build `6` and successfully submitted version `1.2` for review.
+- App Store Connect reports version `1.2` state `WAITING_FOR_REVIEW` with release type `AFTER_APPROVAL`.
+
 ### Cloudflare Email Sending deploy
 
 Status: cleared on May 13, 2026.
@@ -209,5 +221,4 @@ Status: cleared for local launch, no-AI sends, share extension, and backend AI s
 
 ## Known Blockers
 
-- App Store upload/submission should wait for approval because it touches App Store Connect.
 - The live Worker `GOOGLE_API_KEY` currently cannot call the Generative Language API. This should be fixed after release, but AI summaries are not blocked while the verified Anthropic backup remains configured.
